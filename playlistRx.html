@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <meta content="width=device-width, initial-scale=1" name="viewport"  />
+        
+        <title>PlaylistRx</title>
+        <link href="playlistRx.css" rel="stylesheet" />
+    </head>
+
+    <body>
+        <div id="container">
+            <h1 id="headline" class="headline">Playlist<span id="headlineRx">Rx</span></h1>
+            
+            <div id ="saveDiv">
+                <p id="directionsMain">
+                    PlaylistRx can, with your permission, parse your Reddit saved list and create playlists for you under your YouTube, SoundCloud, or Spotify accounts. Presently this only parses the first 100 links saved on your Reddit account.
+                </p>
+                
+                <div id="actionPanel">
+                    <div id="accountToggles" class="hidden">
+                        <label>Include:</label>
+                        <br>
+                        <label>SoundCloud</label>
+                        <input id="checkSoundCloud" name="checkSoundCloud" type="checkbox">
+                        <br>
+                        <label>Spotify</label>
+                        <input id="checkSpotify" name="checkSpotify" type="checkbox">
+                        <br>
+                        <label>YouTube</label>
+                        <input id="checkYouTube" name="checkYouTube" type="checkbox">
+                    </div>
+                    <br>
+                    <button id="playlistRx" class="button" name="playlistRx" type="button" >PlaylistRx my Reddit Saved</button>
+                    
+                    <p id="directionsUnsave" class="hidden">
+                        You can remove songs added to playlists from your Reddit Saved list by clicking the button below.
+                    </p>
+                    
+                    <button id="unsave" class="button hidden" name="unsave" type="button" >Unsave Reddit Links</button>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="playlistRx.js" ></script>
+    </body>
+</html>

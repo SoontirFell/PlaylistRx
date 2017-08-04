@@ -1,0 +1,10 @@
+
+.headline {
+    color:#0ECE00;
+    font-family: Georgia, Times New Roman, serif;
+    font-style: italic;
+}
+
+.hidden {
+	display: none;
+}
