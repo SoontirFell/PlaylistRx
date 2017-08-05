@@ -8,16 +8,21 @@ var playlistSC,
 
 var errorHandling = {
     
-    erred: false,
+    errors: [],
     
-    postError: function (error) {
+    postErrors: function () {
         'use strict';
-        if (!errorHandling.erred) {
-            document.getElementById('URL').value = '';
-            errorHandling.erred = true;
-        }
+        var i,
+            len;
         
-        document.getElementById('URL').value += (error + '\n \n');
+        i = 0;
+        len = errorHandling.errors.length;
+        
+        if (len !== 0) {
+            for (i; i < len; i++) {
+                console.log(errorHandling.errors[i]);
+            }
+        }
     }
 };
 
@@ -45,7 +50,7 @@ function generatePlaylistName() {
     dateRaw = new Date();
     date = dateRaw.getFullYear(dateRaw) + '/' + dateRaw.getMonth(dateRaw)  + '/' + dateRaw.getDate(dateRaw);
     
-    return 'PlaylistRx - ' + date;
+    return 'PlaylistRx_' + date;
 }
 
 function parseSCTitle(URL, serviceType, rId) {
@@ -60,17 +65,15 @@ playlistYT = {
     clientId: '602382788924-lluqufsf5bldmu5ago6bt9vuojo48d1a.apps.googleusercontent.com',
     clientSecret: 'bzwcXuIiSfw4ctnHv7Lb1s-n',
     redirectURI: 'http://ext.local.playlistrx.com',
-    playListName: '',
+    playlistId: '',
+    playlistName: '',
     songs: [],
     state: '',
     token: '',
     
     //functions
-    addToPlaylist: function () {
-        'use strict';
-        
-    },
     
+    // Begin OAuth
     // Retrieve auth code
     authorize: function () {
         'use strict';
@@ -88,33 +91,42 @@ playlistYT = {
             url: authURL
         });
     },
-    getAuthToken: function () {
+    authTokenGet: function () {
         'use strict';
-        return playlistYT.authorize().then(playlistYT.validate);
+        return playlistYT.authorize().then(playlistYT.authValidate);
     },
     
     // Retrieve accessToken
-    requestToken: function (authCode) {
+    authTokenVal: function () {
         'use strict';
         var xhr,
             params,
             response;
         
         xhr = new XMLHttpRequest();
-        params = 'access_token=' + authCode;
+        params = 'access_token=' + playlistYT.token;
         
         xhr.open('post', 'https://www.googleapis.com/oauth2/v3/tokeninfo', true);
         xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                response = JSON.parse(xhr.response);
-                playlistYT.token = response.access_token;
-                playlistYT.playlistConstructor();
+                playlistYT.playlistInstantiator();
             }
         };
         xhr.send(params);
     },
+    
+    authValidate: function (URL) {
+        'use strict';
+        var rState;
+        rState = URL.substring(39, 47);
+        if (playlistYT.state === rState) {
+            playlistYT.token = URL.substring(61, 192);
+            playlistYT.authTokenVal();
+        }
+    },
+    // End OAuth
     
     parseYtId: function (URL, rId) {
         'use strict';
@@ -131,15 +143,55 @@ playlistYT = {
         });
     },
     
-    playlistConstructor: function () {
+    //finish
+    playlistAdd: function () {
         'use strict';
+        var len,
+            params,
+            rId,
+            URL,
+            videoId,
+            xhr;
         
-        if (!playlistYT.playListExists) {
-            playlistYT.playlistInstantiator();
+        if (playlistYT.songs.length === 0) {
+            return;
         }
+        
+        rId = playlistYT.songs[0].rId;
+        URL = playlistYT.songs[0].URL;
+        videoId = playlistYT.songs[0].ytId;
+        
+        xhr = new XMLHttpRequest();
+        params = {
+            snippet: {
+                playlistId: playlistYT.playlistId,
+                resourceId: {
+                    kind: 'youtube#video',
+                    videoId: videoId
+                }
+            }
+        };
+        
+        xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlistItems?access_token=' + playlistYT.token + '&part=snippet', true);
+        xhr.setRequestHeader('content-type', 'application/json');
+        
+        // Listen for response
+        xhr.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                //TODO Add success tracking
+                playlistYT.songs.splice(0, 1);
+                playlistYT.playlistAdd();
+            }
+            
+            if (this.readyState === 4 && this.status === 404) {
+                errorHandling.errors.push(rId + ' - ' + URL);
+                playlistYT.songs.splice(0, 1);
+                playlistYT.playlistAdd();
+            }
+        };
+        xhr.send(JSON.stringify(params));
+        
     },
-    
-    playListExists: false,
     
     playlistInstantiator: function () {
         'use strict';
@@ -147,32 +199,26 @@ playlistYT = {
             response,
             xhr;
         
-        playlistYT.playListName = generatePlaylistName();
+        playlistYT.playlistName = generatePlaylistName();
         
         xhr = new XMLHttpRequest();
-        params = 'access_token=' + playlistYT.token + 'part=snippet&snippet.title=' + playlistYT.playListName;
+        params = {
+            snippet: {
+                title: playlistYT.playlistName
+            }
+        };
         
-        xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlists', true);
-        xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
-        //xhr.setRequestHeader('Authorization', 'Bearer ' + playlistYT.token);
+        xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlists?access_token=' + playlistYT.token + '&part=snippet', true);
+        xhr.setRequestHeader('content-type', 'application/json');
+        
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                response = JSON.parse(xhr.response);
-                playlistYT.token = response.access_token;
-                playlistYT.playlistConstructor();
+                playlistYT.playlistId = JSON.parse(xhr.response).id;
+                playlistYT.playlistAdd();
             }
         };
-        xhr.send(params);
-    },
-    
-    validate: function (URL) {
-        'use strict';
-        var rState;
-        rState = URL.substring(39, 47);
-        if (playlistYT.state === rState) {
-            playlistYT.requestToken(URL.substring(61, 192));
-        }
+        xhr.send(JSON.stringify(params));
     }
 };
 
@@ -183,6 +229,8 @@ redditSaved = {
     state: '',
     token: '',
     
+    // functions
+    // Begin OAuth Authorization
     // Retrieve auth code
     authorize: function () {
         'use strict';
@@ -200,13 +248,13 @@ redditSaved = {
             url: authURL
         });
     },
-    getAuthToken: function () {
+    authTokenGet: function () {
         'use strict';
-        return redditSaved.authorize().then(redditSaved.validate);
+        return redditSaved.authorize().then(redditSaved.authValidate);
     },
     
     // Retrieve accessToken
-    requestToken: function (authCode) {
+    authTokenVal: function (authCode) {
         'use strict';
         var xhr,
             params,
@@ -228,6 +276,16 @@ redditSaved = {
         };
         xhr.send(params);
     },
+    
+    authValidate: function (URL) {
+        'use strict';
+        var rState;
+        rState = URL.substring(39, 47);
+        if (redditSaved.state === rState) {
+            redditSaved.authTokenVal(URL.substring(53));
+        }
+    },
+    // End OAuth
     
     retrieveUsername: function (n) {
         'use strict';
@@ -274,9 +332,19 @@ redditSaved = {
                     */
                 }
 
-                playlistYT.getAuthToken();
-                // playlistSC.getAuthToken();
-                // playlistSY.getAuthToken();
+                if (playlistYT.songs.length !== 0) {
+                    playlistYT.authTokenGet();
+                }
+                
+                /*
+                if (playlistSC.songs.length !== 0) {
+                    playlistSC.authTokenGet();
+                }
+                
+                if (playlistSY.songs.length !== 0) {
+                    playlistSY.authTokenGet();
+                }
+                */
             }
             
         };
@@ -300,15 +368,6 @@ redditSaved = {
             }
         };
         xhr.send(params);
-    },
-    
-    validate: function (URL) {
-        'use strict';
-        var rState;
-        rState = URL.substring(39, 47);
-        if (redditSaved.state === rState) {
-            redditSaved.requestToken(URL.substring(53));
-        }
     }
     
 };
@@ -316,5 +375,5 @@ redditSaved = {
 // Create and modify the playlist object which contains all songs, the song index, and playlist functions
 
 
-document.getElementById('playlistRx').addEventListener('click', redditSaved.getAuthToken);
+document.getElementById('playlistRx').addEventListener('click', redditSaved.authTokenGet);
 //document.getElementById('unsave').addEventListener('click', placeholder);

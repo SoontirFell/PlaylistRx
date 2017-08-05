@@ -1,15 +1,16 @@
 To Do:
     Core Functionality
         Create Playlists from Reddit Saved
-            Create YouTube playlist
-            Add songs to playlist
+            Check for existing playlist with same name before creating
             
             Populate list of SoundCloud links from Reddit Saved
             Create SoundCloud playlist
+            Check for existing playlist with same name before creating
             Add songs to playlist
             
             Create Spotify playlist from links
             Create Spotify playlist
+            Check for existing playlist with same name before creating
             Add songs to playlist
         
         Toggle Accounts on/off
