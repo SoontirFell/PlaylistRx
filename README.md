@@ -1,4 +1,3 @@
-# playlistr
-Playlist creator from reddit saved list
+# PlaylistRx
 
-Placeholder note
+Creat YouTube, SoundCloud, and Spotify playlists based on your saved Reddit links.
