@@ -1,39 +1,35 @@
 To Do:
     Core Functionality
         Create Playlists from Reddit Saved
-            Check for existing playlist with same name before creating
+            Get User ID
+            Populate list of Spotify tracks from Reddit Saved
+            Create SY playlist
+            Add songs to SY playlist 
             
-            Populate list of SoundCloud links from Reddit Saved
-            Create SoundCloud playlist
-            Check for existing playlist with same name before creating
-            Add songs to playlist
-            
-            Create Spotify playlist from links
-            Create Spotify playlist
-            Check for existing playlist with same name before creating
-            Add songs to playlist
-        
-        Toggle Accounts on/off
-        
-        Setup Refresh tokens
-            local storage?
-    2
+            Populate list of SoundCloud tracks from Reddit Saved
+            Create SC playlist
+            Add songs to SC playlist
+    #
         Confirmation dialogue for playlist creation
             "X YouTube links, Y SoundCloud links, and Z Spotify links were found..."
-    3 
+    # 
         Option to unsave from Reddit in dialogue
-    4
-        Identify types of YouTube links
-        Provide option to ignore certain types of YouTube links by
-            Genre
-            Duration
-    5
-        Option to append to pre-existing playlists of user's choosing
-            Default is to create a new playlist for each save
-    6
+    #
+        Setup Refresh tokens
+            local storage?
+    #
+        Toggle Accounts on/off  
+    #
         Increase # of reddit saved links imported to 1000
-    7
+    #
         Add Wizard to customize each vendors saved Playlist
+            Name
+            Checkboxes for each song with a save and dismiss option
+    # 
+        Playlist import
+    #
+        Album import (SY specific)
+    
 
 ---
 JS Design Notes:
@@ -58,11 +54,19 @@ YouTube API
 https://developers.google.com/youtube/v3/guides/auth/client-side-web-apps
 https://developers.google.com/youtube/v3/guides/auth/client-side-web-apps
 https://developers.google.com/youtube/v3/docs/playlists/insert
+
 https://developers.google.com/youtube/v3/docs/videos/list
 http://www.htmlgoodies.com/beyond/video/respond-to-embedded-youtube-video-events.html
 http://stackoverflow.com/questions/22726941/youtube-api-get-current-video-title
 http://stackoverflow.com/questions/28018792/how-to-get-youtube-video-title-with-v3-url-api-in-javascript-w-ajax-json
 http://stackoverflow.com/questions/30084140/youtube-video-title-with-api-v3-without-api-key
+
+---
+SY API
+https://developer.spotify.com/web-api/authorization-guide/
+https://developer.spotify.com/web-api/get-current-users-profile/
+https://developer.spotify.com/web-api/create-playlist/
+https://developer.spotify.com/web-api/add-tracks-to-playlist/
 
 ---
 SC API

@@ -1,6 +1,6 @@
 /*globals browser, console, SC, YT */
 /*jslint plusplus: true */
-var playlistSC,
+var //playlistSC,
     playlistSY,
     playlistYT,
     redditSaved;
@@ -59,6 +59,166 @@ function parseSCTitle(URL, serviceType, rId) {
     
 }
 
+playlistSY = {
+    //vars
+    clientId: '5086ac5b03f84cfc9bf0d80792fe5264',
+    clientSecret: 'a4db9422978c40ce9fc41f09cd1146ba',
+    redirectURI: 'http://ext.local.playlistrx.com',
+    playlistId: '',
+    playlistName: '',
+    songs: [],
+    state: '',
+    token: '',
+    userId: '',
+    
+    //functions
+    
+    // Begin OAuth
+    // Retrieve auth code
+    authorize: function () {
+        'use strict';
+        var authURL,
+            response;
+        
+        if (playlistSY.state === '') {
+            playlistSY.state = newState();
+        }
+        
+        authURL = 'https://accounts.spotify.com/authorize?response_type=token&scope=user-read-private%20playlist-modify-private%20playlist-modify-public&client_id=' + playlistSY.clientId + '&redirect_uri=' + playlistSY.redirectURI + '&state=' + playlistSY.state;
+        
+        return browser.identity.launchWebAuthFlow({
+            interactive: true,
+            url: authURL
+        });
+        
+        //https://accounts.spotify.com/authorize?response_type=token&scope=playlist-modify-private%20playlist-modify-public&client_id=5086ac5b03f84cfc9bf0d80792fe5264&redirect_uri=http://ext.local.playlistrx.com
+        
+    },
+    
+    authTokenGet: function () {
+        'use strict';
+        return playlistSY.authorize().then(playlistSY.authValidate);
+    },
+    
+    authValidate: function (URL) {
+        'use strict';
+        var scState;
+        scState = URL.substring(330);
+        if (playlistSY.state === scState) {
+            playlistSY.token = URL.substring(46, 289);
+            playlistSY.getUserId();
+        }
+    },
+    // End OAuth
+    
+    getUserId: function () {
+        'use strict';
+        var xhr,
+            response;
+        
+        xhr = new XMLHttpRequest();
+        xhr.open('get', 'https://api.spotify.com/v1/me', true);
+        xhr.setRequestHeader('Authorization', 'bearer ' + playlistSY.token);
+        xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                playlistSY.userId = xhr.response;
+                //playlistSY.playlistInstantiator();
+            }
+        };
+        xhr.send();
+    },
+    
+    parseSYId: function (URL, rId) {
+        'use strict';
+        
+        playlistSY.songs.push({
+            scId: URL.substring(31),
+            rId: rId,
+            URL: URL
+        });
+    },
+    
+    //finish
+    playlistAddTrack: function () {
+        'use strict';
+        var len,
+            params,
+            rId,
+            URL,
+            videoId,
+            xhr;
+        
+        if (playlistSY.songs.length === 0) {
+            return;
+        }
+        
+        rId = playlistSY.songs[0].rId;
+        URL = playlistSY.songs[0].URL;
+        videoId = playlistSY.songs[0].ytId;
+        
+        xhr = new XMLHttpRequest();
+        params = {
+            snippet: {
+                playlistId: playlistSY.playlistId,
+                resourceId: {
+                    kind: 'youtube#video',
+                    videoId: videoId
+                }
+            }
+        };
+        
+        xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlistItems?access_token=' + playlistSY.token + '&part=snippet', true);
+        xhr.setRequestHeader('content-type', 'application/json');
+        
+        // Listen for response
+        xhr.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                //TODO Add success tracking
+                playlistSY.songs.splice(0, 1);
+                playlistSY.playlistAddTrack();
+            }
+            
+            if (this.readyState === 4 && this.status === 404) {
+                errorHandling.errors.push(rId + ' - ' + URL);
+                playlistSY.songs.splice(0, 1);
+                playlistSY.playlistAddTrack();
+            }
+        };
+        xhr.send(JSON.stringify(params));
+        
+    },
+    
+    playlistInstantiator: function () {
+        'use strict';
+        var params,
+            response,
+            xhr;
+        
+        playlistSY.playlistName = generatePlaylistName();
+        
+        xhr = new XMLHttpRequest();
+        params = {
+            snippet: {
+                title: playlistSY.playlistName
+            }
+        };
+        
+        xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlists?access_token=' + playlistSY.token + '&part=snippet', true);
+        xhr.setRequestHeader('content-type', 'application/json');
+        
+        // Listen for response
+        xhr.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                playlistSY.playlistId = JSON.parse(xhr.response).id;
+                playlistSY.playlistAddTrack();
+            }
+        };
+        xhr.send(JSON.stringify(params));
+    }
+};
+
+
 
 playlistYT = {
     //vars
@@ -91,6 +251,7 @@ playlistYT = {
             url: authURL
         });
     },
+    
     authTokenGet: function () {
         'use strict';
         return playlistYT.authorize().then(playlistYT.authValidate);
@@ -111,6 +272,7 @@ playlistYT = {
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
+                
                 playlistYT.playlistInstantiator();
             }
         };
@@ -119,16 +281,16 @@ playlistYT = {
     
     authValidate: function (URL) {
         'use strict';
-        var rState;
-        rState = URL.substring(39, 47);
-        if (playlistYT.state === rState) {
+        var ytState;
+        ytState = URL.substring(39, 47);
+        if (playlistYT.state === ytState) {
             playlistYT.token = URL.substring(61, 192);
             playlistYT.authTokenVal();
         }
     },
     // End OAuth
     
-    parseYtId: function (URL, rId) {
+    parseYTId: function (URL, rId) {
         'use strict';
         var idMatcher,
             ytId;
@@ -144,7 +306,7 @@ playlistYT = {
     },
     
     //finish
-    playlistAdd: function () {
+    playlistAddTrack: function () {
         'use strict';
         var len,
             params,
@@ -180,13 +342,13 @@ playlistYT = {
             if (this.readyState === 4 && this.status === 200) {
                 //TODO Add success tracking
                 playlistYT.songs.splice(0, 1);
-                playlistYT.playlistAdd();
+                playlistYT.playlistAddTrack();
             }
             
             if (this.readyState === 4 && this.status === 404) {
                 errorHandling.errors.push(rId + ' - ' + URL);
                 playlistYT.songs.splice(0, 1);
-                playlistYT.playlistAdd();
+                playlistYT.playlistAddTrack();
             }
         };
         xhr.send(JSON.stringify(params));
@@ -215,7 +377,7 @@ playlistYT = {
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
                 playlistYT.playlistId = JSON.parse(xhr.response).id;
-                playlistYT.playlistAdd();
+                playlistYT.playlistAddTrack();
             }
         };
         xhr.send(JSON.stringify(params));
@@ -323,13 +485,19 @@ redditSaved = {
                 count = response.data.children.length;
                 for (i = 0; i < count; i++) {
                     if (response.data.children[i].data.domain === 'youtube.com' || response.data.children[i].data.domain === 'youtu.be') {
-                        playlistYT.parseYtId(response.data.children[i].data.url, response.data.children[i].data.name);
+                        playlistYT.parseYTId(response.data.children[i].data.url, response.data.children[i].data.name);
+                    }
+                    if (response.data.children[i].data.domain === 'open.spotify.com') {
+                        playlistSY.parseSYId(response.data.children[i].data.url, response.data.children[i].data.name);
                     }
                     /*
                     if (response.data.children[i].data.domain === 'soundcloud.com') {
                         parseSCTitle(response.data.children[i].data.url, response.data.children[i].data.name);
                     }
                     */
+                }
+                if (playlistSY.songs.length !== 0) {
+                    playlistSY.authTokenGet();
                 }
 
                 if (playlistYT.songs.length !== 0) {
@@ -340,11 +508,9 @@ redditSaved = {
                 if (playlistSC.songs.length !== 0) {
                     playlistSC.authTokenGet();
                 }
-                
-                if (playlistSY.songs.length !== 0) {
-                    playlistSY.authTokenGet();
-                }
                 */
+                
+                
             }
             
         };
@@ -356,6 +522,7 @@ redditSaved = {
         var xhr,
             params;
         xhr = new XMLHttpRequest();
+        //redefine params
         //params = 'id=' + playlist.songs[num].rId;
         xhr.open('post', 'https://oauth.reddit.com/api/unsave', true);
         xhr.setRequestHeader('Authorization', 'bearer ' + redditSaved.token);
