@@ -1,3 +1,3 @@
 # PlaylistRx
 
-Creat YouTube, SoundCloud, and Spotify playlists based on your saved Reddit links.
+Parse your saved Reddit links to create playlists on YouTube and Spotify.
