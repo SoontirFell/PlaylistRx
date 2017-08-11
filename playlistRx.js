@@ -118,12 +118,12 @@ playlistSY = {
         
         xhr = new XMLHttpRequest();
         xhr.open('get', 'https://api.spotify.com/v1/me', true);
-        xhr.setRequestHeader('Authorization', 'bearer ' + playlistSY.token);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + playlistSY.token);
         xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                playlistSY.userId = xhr.response;
-                //playlistSY.playlistInstantiator();
+                playlistSY.userId = JSON.parse(xhr.response).id;
+                playlistSY.playlistInstantiator();
             }
         };
         xhr.send();
@@ -132,57 +132,48 @@ playlistSY = {
     parseSYId: function (URL, rId) {
         'use strict';
         
-        playlistSY.songs.push({
-            scId: URL.substring(31),
-            rId: rId,
-            URL: URL
-        });
+        if (URL.substring(25, 30) === 'track') {
+            playlistSY.songs.push({
+                syId: 'spotify:track:' + URL.substring(31),
+                rId: rId,
+                URL: URL
+            });
+        }
     },
     
     //finish
-    playlistAddTrack: function () {
+    playlistAddTracks: function () {
         'use strict';
-        var len,
+        var i,
+            len,
             params,
-            rId,
-            URL,
-            videoId,
+            uriArray,
             xhr;
         
         if (playlistSY.songs.length === 0) {
             return;
         }
         
-        rId = playlistSY.songs[0].rId;
-        URL = playlistSY.songs[0].URL;
-        videoId = playlistSY.songs[0].ytId;
+        i = 0;
+        len = playlistSY.songs.length;
+        uriArray = [];
+        
+        for (i; i < len; i++) {
+            uriArray.push(playlistSY.songs[i].syId);
+        }
         
         xhr = new XMLHttpRequest();
         params = {
-            snippet: {
-                playlistId: playlistSY.playlistId,
-                resourceId: {
-                    kind: 'youtube#video',
-                    videoId: videoId
-                }
-            }
+            uris: uriArray
         };
         
-        xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlistItems?access_token=' + playlistSY.token + '&part=snippet', true);
+        xhr.open('post', 'https://api.spotify.com/v1/users/' + playlistSY.userId + '/playlists/' + playlistSY.playlistId + '/tracks', true);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + playlistSY.token);
         xhr.setRequestHeader('content-type', 'application/json');
-        
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                //TODO Add success tracking
-                playlistSY.songs.splice(0, 1);
-                playlistSY.playlistAddTrack();
-            }
-            
-            if (this.readyState === 4 && this.status === 404) {
-                errorHandling.errors.push(rId + ' - ' + URL);
-                playlistSY.songs.splice(0, 1);
-                playlistSY.playlistAddTrack();
+                console.log('SY Success');
             }
         };
         xhr.send(JSON.stringify(params));
@@ -199,19 +190,17 @@ playlistSY = {
         
         xhr = new XMLHttpRequest();
         params = {
-            snippet: {
-                title: playlistSY.playlistName
-            }
+            name: playlistSY.playlistName
         };
         
-        xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlists?access_token=' + playlistSY.token + '&part=snippet', true);
+        xhr.open('post', 'https://api.spotify.com/v1/users/' + playlistSY.userId + '/playlists', true);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + playlistSY.token);
         xhr.setRequestHeader('content-type', 'application/json');
-        
         // Listen for response
         xhr.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
+            if (this.readyState === 4 && this.status === 201) {
                 playlistSY.playlistId = JSON.parse(xhr.response).id;
-                playlistSY.playlistAddTrack();
+                playlistSY.playlistAddTracks();
             }
         };
         xhr.send(JSON.stringify(params));
@@ -308,8 +297,7 @@ playlistYT = {
     //finish
     playlistAddTrack: function () {
         'use strict';
-        var len,
-            params,
+        var params,
             rId,
             URL,
             videoId,
