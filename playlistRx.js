@@ -61,6 +61,7 @@ function parseSCTitle(URL, serviceType, rId) {
 
 playlistSY = {
     //vars
+    albums: [],
     clientId: '5086ac5b03f84cfc9bf0d80792fe5264',
     clientSecret: 'a4db9422978c40ce9fc41f09cd1146ba',
     redirectURI: 'http://ext.local.playlistrx.com',
@@ -91,8 +92,6 @@ playlistSY = {
             url: authURL
         });
         
-        //https://accounts.spotify.com/authorize?response_type=token&scope=playlist-modify-private%20playlist-modify-public&client_id=5086ac5b03f84cfc9bf0d80792fe5264&redirect_uri=http://ext.local.playlistrx.com
-        
     },
     
     authTokenGet: function () {
@@ -102,19 +101,65 @@ playlistSY = {
     
     authValidate: function (URL) {
         'use strict';
-        var scState;
-        scState = URL.substring(330);
-        if (playlistSY.state === scState) {
+        var syState;
+        syState = URL.substring(330);
+        if (playlistSY.state === syState) {
             playlistSY.token = URL.substring(46, 289);
             playlistSY.getUserId();
         }
     },
     // End OAuth
+    addAlbumTracks: function () {
+        'use strict';
+        var i,
+            len;
+        
+        len = playlistSY.albums.length;
+    
+        if (len !== 0) {
+            for (i = 0; i < len; i++) {
+                playlistSY.getAlbumTracks(playlistSY.albums[i].URL, playlistSY.albums[i].rId);
+            }
+        }
+        
+        playlistSY.playlistAddTracks();
+    },
+    
+    getAlbumTracks: function (URL, rId) {
+        'use strict';
+        var albumId,
+            i,
+            len,
+            response,
+            xhr;
+        
+        albumId = URL.substring(31, 53);
+        
+        xhr = new XMLHttpRequest();
+        xhr.open('get', 'https://api.spotify.com/v1/albums/' + albumId + '/tracks', false);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + playlistSY.token);
+        xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                response = JSON.parse(xhr.response);
+                len = response.items.length;
+                
+                for (i = 0; i < len; i++) {
+                    playlistSY.songs.push({
+                        uri: response.items[i].uri,
+                        rId: rId,
+                        URL: 'https://open.spotify.com/track/' + response.items[i].id
+                    });
+                }
+            }
+        };
+        xhr.send();
+    },
     
     getUserId: function () {
         'use strict';
-        var xhr,
-            response;
+        var response,
+            xhr;
         
         xhr = new XMLHttpRequest();
         xhr.open('get', 'https://api.spotify.com/v1/me', true);
@@ -134,14 +179,21 @@ playlistSY = {
         
         if (URL.substring(25, 30) === 'track') {
             playlistSY.songs.push({
-                syId: 'spotify:track:' + URL.substring(31),
+                uri: 'spotify:track:' + URL.substring(31),
                 rId: rId,
                 URL: URL
             });
         }
+        
+        if (URL.substring(25, 30) === 'album') {
+            playlistSY.albums.push({
+                rId: rId,
+                URL: URL
+            });
+        }
+        
     },
     
-    //finish
     playlistAddTracks: function () {
         'use strict';
         var i,
@@ -159,7 +211,7 @@ playlistSY = {
         uriArray = [];
         
         for (i; i < len; i++) {
-            uriArray.push(playlistSY.songs[i].syId);
+            uriArray.push(playlistSY.songs[i].uri);
         }
         
         xhr = new XMLHttpRequest();
@@ -200,7 +252,7 @@ playlistSY = {
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 201) {
                 playlistSY.playlistId = JSON.parse(xhr.response).id;
-                playlistSY.playlistAddTracks();
+                playlistSY.addAlbumTracks();
             }
         };
         xhr.send(JSON.stringify(params));
@@ -249,23 +301,20 @@ playlistYT = {
     // Retrieve accessToken
     authTokenVal: function () {
         'use strict';
-        var xhr,
-            params,
-            response;
+        var response,
+            xhr;
         
         xhr = new XMLHttpRequest();
-        params = 'access_token=' + playlistYT.token;
         
-        xhr.open('post', 'https://www.googleapis.com/oauth2/v3/tokeninfo', true);
+        xhr.open('post', 'https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=' + playlistYT.token, true);
         xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                
                 playlistYT.playlistInstantiator();
             }
         };
-        xhr.send(params);
+        xhr.send();
     },
     
     authValidate: function (URL) {
@@ -273,7 +322,7 @@ playlistYT = {
         var ytState;
         ytState = URL.substring(39, 47);
         if (playlistYT.state === ytState) {
-            playlistYT.token = URL.substring(61, 192);
+            playlistYT.token = URL.substring(61, 193);
             playlistYT.authTokenVal();
         }
     },
@@ -406,9 +455,10 @@ redditSaved = {
     // Retrieve accessToken
     authTokenVal: function (authCode) {
         'use strict';
-        var xhr,
-            params,
-            response;
+        var params,
+            response,
+            xhr;
+        
         xhr = new XMLHttpRequest();
         params = 'grant_type=authorization_code&code=' + authCode + '&redirect_uri=' + redditSaved.redirectURI;
         
@@ -439,8 +489,8 @@ redditSaved = {
     
     retrieveUsername: function (n) {
         'use strict';
-        var xhr,
-            response;
+        var response,
+            xhr;
         
         xhr = new XMLHttpRequest();
         xhr.open('get', 'https://oauth.reddit.com/api/v1/me', true);
@@ -456,11 +506,12 @@ redditSaved = {
     
     retrieveSaved: function (username) {
         'use strict';
-        var xhr,
+        var count,
             i,
-            count,
             params,
-            response;
+            response,
+            xhr;
+        
         xhr = new XMLHttpRequest();
         params = '?limit=100';
         xhr.open('get', 'https://oauth.reddit.com/user/' + username + '/saved' + params, true);
@@ -472,13 +523,14 @@ redditSaved = {
                 response = JSON.parse(xhr.response);
                 count = response.data.children.length;
                 for (i = 0; i < count; i++) {
-                    if (response.data.children[i].data.domain === 'youtube.com' || response.data.children[i].data.domain === 'youtu.be') {
-                        playlistYT.parseYTId(response.data.children[i].data.url, response.data.children[i].data.name);
-                    }
                     if (response.data.children[i].data.domain === 'open.spotify.com') {
                         playlistSY.parseSYId(response.data.children[i].data.url, response.data.children[i].data.name);
                     }
                     /*
+                    if (response.data.children[i].data.domain === 'youtube.com' || response.data.children[i].data.domain === 'youtu.be') {
+                        playlistYT.parseYTId(response.data.children[i].data.url, response.data.children[i].data.name);
+                    }
+                    
                     if (response.data.children[i].data.domain === 'soundcloud.com') {
                         parseSCTitle(response.data.children[i].data.url, response.data.children[i].data.name);
                     }
@@ -488,11 +540,11 @@ redditSaved = {
                     playlistSY.authTokenGet();
                 }
 
+                /*
                 if (playlistYT.songs.length !== 0) {
                     playlistYT.authTokenGet();
                 }
                 
-                /*
                 if (playlistSC.songs.length !== 0) {
                     playlistSC.authTokenGet();
                 }
@@ -507,8 +559,8 @@ redditSaved = {
     
     unsave: function (num) {
         'use strict';
-        var xhr,
-            params;
+        var params,
+            xhr;
         xhr = new XMLHttpRequest();
         //redefine params
         //params = 'id=' + playlist.songs[num].rId;
