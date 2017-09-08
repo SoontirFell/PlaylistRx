@@ -53,11 +53,78 @@ function generatePlaylistName() {
     return 'PlaylistRx_' + date;
 }
 
-function parseSCTitle(URL, serviceType, rId) {
+// RIPPED FROM THE INTERWEBS!
+// Credit to: https://www.sitepoint.com/get-url-parameters-with-javascript/
+
+function getAllUrlParams(url) {
     'use strict';
-    
-    
+    var queryString,
+        obj,
+        arr,
+        i,
+        a,
+        paramNum,
+        paramName,
+        paramValue;
+
+    // get query string from url (optional) or window
+    queryString = url ? url.split('?')[1] : window.location.search.slice(1);
+
+    // we'll store the parameters here
+    obj = {};
+
+    // if query string exists
+    if (queryString) {
+
+        // stuff after # is not part of query string, so get rid of it
+        queryString = queryString.split('#')[0];
+
+        // split our query string into its component parts
+        arr = queryString.split('&');
+
+        for (i = 0; i < arr.length; i++) {
+            // separate the keys and the values
+            a = arr[i].split('=');
+
+            // in case params look like: list[]=thing1&list[]=thing2
+            paramNum = undefined;
+            paramName = a[0].replace(/\[\d*\]/, function (v) {
+                paramNum = v.slice(1, -1);
+                return '';
+            });
+
+            // set parameter value (use 'true' if empty)
+            paramValue = typeof (a[1]) === 'undefined' ? true : a[1];
+
+            // (optional) keep case consistent
+            paramName = paramName.toLowerCase();
+            paramValue = paramValue.toLowerCase();
+
+            // if parameter name already exists
+            if (obj[paramName]) {
+            // convert value to array (if still string)
+                if (typeof obj[paramName] === 'string') {
+                    obj[paramName] = [obj[paramName]];
+                }
+                // if no array index number specified...
+                if (typeof paramNum === 'undefined') {
+                    // put the value on the end of the array
+                    obj[paramName].push(paramValue);
+                } else {
+                    // if array index number specified put the value at that index number
+                    obj[paramName][paramNum] = paramValue;
+                }
+            } else {
+                // if param name doesn't exist yet, set it
+                obj[paramName] = paramValue;
+            }
+        }
+    }
+
+    return obj;
 }
+
+// END INTERWEB RIPS
 
 playlistSY = {
     //vars
@@ -179,7 +246,7 @@ playlistSY = {
         
         if (URL.substring(25, 30) === 'track') {
             playlistSY.songs.push({
-                uri: 'spotify:track:' + URL.substring(31),
+                uri: 'spotify:track:' + URL.substring(31).split('?')[0],
                 rId: rId,
                 URL: URL
             });

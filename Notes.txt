@@ -1,6 +1,10 @@
 To Do:
     #
-        Better method to isolate attribute/parameter for authValidate
+        Better method to isolate attribute/parameter for authValidate (getAllUrlParams?)
+    #
+        Increase # of spotify links saved (multi-request)
+    #
+        Confirmation dialogue for playlist creation
     #
         Add Wizard to customize each vendors saved Playlist
             Playlist Name
@@ -8,15 +12,10 @@ To Do:
                 Save to Playlist
                 Dismiss
                 Unsave from Reddit
-    #
-        Confirmation dialogue for playlist creation
-            "X YouTube links, Y SoundCloud links, and Z Spotify links were found..."
     # 
         Allow playlist links to import
     #
         Increase # of reddit saved links imported (multi-request)
-    #
-        Increase # of spotify links saved (multi-request)
     #
         Toggle Accounts on/off
     #
