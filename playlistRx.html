@@ -16,30 +16,55 @@
             
             <div id ="saveDiv">
                 <p id="directionsMain">
-                    PlaylistRx can, with your permission, parse your Reddit saved list and create playlists for you under your YouTube, <del>SoundCloud, or Spotify </del>accounts. Presently this only parses the first 100 links saved on your Reddit account.
+                    PlaylistRx creates Spotify and YouTube playlists based on the links you've saved to your Reddit account.
                 </p>
                 
                 <div id="actionPanel">
-                    <div id="accountToggles" class="hidden">
+                    <div id="accountToggles" class="">
                         <label>Include:</label>
-                        <br>
-                        <label>SoundCloud</label>
-                        <input id="checkSoundCloud" name="checkSoundCloud" type="checkbox">
-                        <br>
+                        <input id="checkSpotify" name="checkSpotify" type="checkbox" checked>
                         <label>Spotify</label>
-                        <input id="checkSpotify" name="checkSpotify" type="checkbox">
-                        <br>
+                        <input id="checkYouTube" name="checkYouTube" type="checkbox" checked>
                         <label>YouTube</label>
-                        <input id="checkYouTube" name="checkYouTube" type="checkbox">
                     </div>
                     <br>
-                    <button id="playlistRx" class="button" name="playlistRx" type="button" >PlaylistRx my Reddit Saved</button>
+                    <div id="playlistRx" class="button" name="playlistRx" type="button" >Get my Reddit Saved</div>
                     
-                    <p id="directionsUnsave" class="hidden">
-                        You can remove songs added to playlists from your Reddit Saved list by clicking the button below.
-                    </p>
+                    <br>
+                    <br>
                     
-                    <button id="unsave" class="button hidden" name="unsave" type="button" >Unsave Reddit Links</button>
+                    <table id="playlistCreator" class="playlistCreator hidden">
+                        <tr id="tableHeader" class="tableHeader">
+                            <th>
+                                <input id="checkAll" type="checkbox" name="checkAll">
+                            </th>
+                            <th >
+                                <label id="playlistName"><input id="playlistNameInput" type="text" name="playlistName"></label>
+                            </th>
+                            <th>
+                                <div id="saveSelected" class="smallButton">Save</div>
+                            </th>
+                            <th>
+                                <div id="dismissSelected" class="smallButton">Dismiss</div>
+                            </th>
+                        </tr>
+                        <tr id="tableSubheaderSpotify" class="tableSubheader">
+                            <th>
+                                <input id="checkAllSpotify" type="checkbox" name="checkAllSpotify">
+                            </th>
+                            <th colspan="3">
+                                <label id="labelSpotify">Spotify</label>
+                            </th>
+                        </tr>
+                        <tr id="tableSubheaderYouTube" class="tableSubheader">
+                            <th>
+                                <input id="checkAllYouTube" type="checkbox" name="checkAllYouTube">
+                            </th>
+                            <th colspan="3">
+                                <label id="labelYouTube">YouTube</label>
+                            </th>
+                        </tr>
+                    </table>
                 </div>
             </div>
         </div>

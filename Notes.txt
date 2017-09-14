@@ -1,23 +1,32 @@
-To Do:
-    #
-        Better method to isolate attribute/parameter for authValidate (getAllUrlParams?)
-    #
-        Increase # of spotify links saved (multi-request)
+To Do
     #
         Confirmation dialogue for playlist creation
     #
         Add Wizard to customize each vendors saved Playlist
-            Playlist Name
-            Checkboxes for each song
-                Save to Playlist
-                Dismiss
-                Unsave from Reddit
+            Layout
+                Header - Sticky
+                    Left
+                        Check/Uncheck All
+                        Playlist Name Text Input
+                    Right
+                        Save Playlists - Grayed out until Checked 
+                        Dismiss - Grayed out until Checked
+                Body
+                    Subheader rows to break up different services
+                    Checkboxes for each song
+                    Source Title (YT = data.media.oembed.title || SY = data.media.oembed.description) - Links to source (data.url)
+    #
+        When using "Dismiss" button prompt user with diaglogue asking if they want to remove the selected from Reddit Saved too.
+    #
+        Toggles for each service
+    #
+        Better method to isolate attribute/parameter for authValidate (getAllUrlParams?)
+    #
+        Increase # of spotify links saved (multi-request)
     # 
         Allow playlist links to import
     #
         Increase # of reddit saved links imported (multi-request)
-    #
-        Toggle Accounts on/off
     #
         Setup Refresh tokens
             local storage?

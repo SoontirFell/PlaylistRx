@@ -589,7 +589,7 @@ redditSaved = {
             if (this.readyState === 4 && this.status === 200) {
                 response = JSON.parse(xhr.response);
                 count = response.data.children.length;
-                for (i = 0; i < count; i++) {
+                for (i = count - 1; i >= 0; i--) {
                     if (response.data.children[i].data.domain === 'open.spotify.com') {
                         playlistSY.parseSYId(response.data.children[i].data.url, response.data.children[i].data.name);
                     }
