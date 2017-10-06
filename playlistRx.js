@@ -48,9 +48,72 @@ function generatePlaylistName() {
         dateRaw;
     
     dateRaw = new Date();
-    date = dateRaw.getFullYear(dateRaw) + '/' + dateRaw.getMonth(dateRaw)  + '/' + dateRaw.getDate(dateRaw);
+    date = dateRaw.getFullYear(dateRaw) + '/' + (dateRaw.getMonth(dateRaw) + 1)  + '/' + dateRaw.getDate(dateRaw);
     
     return 'PlaylistRx_' + date;
+}
+
+function createRow(service, title, url) {
+    'use strict';
+    var checkbox,
+        checkboxId,
+        link,
+        spotifyPlacer,
+        td,
+        tr,
+        trId,
+        youtubePlacer;
+    
+    spotifyPlacer = document.getElementById('youtubeSubheader').previousElementSibling;
+    youtubePlacer = document.getElementById('playlistCreator').lastChild;
+    
+    tr = document.createElement('tr');
+    
+    switch (service) {
+    case 'SY':
+        if (spotifyPlacer.id === 'spotifySubheader') {
+            trId = 'spotifyTrack1';
+            checkboxId = 'spotifyCheck1';
+        } else {
+            trId = parseInt(spotifyPlacer.id.substring(12), 10) + 1;
+            checkboxId = 'spotifyCheck' + trId;
+            trId = 'spotifyTrack' + trId;
+        }
+        spotifyPlacer.after(tr);
+        break;
+    case 'YT':
+        if (youtubePlacer.id === 'youtubeSubheader') {
+            trId = 'youtubeTrack1';
+            checkboxId = 'youtubeCheck1';
+        } else {
+            trId = parseInt(spotifyPlacer.id.substring(12), 10) + 1;
+            checkboxId = 'youtubeCheck' + trId;
+            trId = 'youtubeTrack' + trId;
+        }
+        youtubePlacer.after(tr);
+        break;
+    default:
+        return;
+    }
+    
+    checkbox = document.createElement('input');
+    checkbox.setAttribute('id', checkboxId);
+    checkbox.setAttribute('name', checkboxId);
+    checkbox.setAttribute('type', 'checkbox');
+    checkbox.checked = true;
+    
+    link = document.createElement('a');
+    link.textContent = title;
+    link.setAttribute('href', url);
+    
+    td = document.createElement('td');
+    td.appendChild(checkbox);
+    tr.appendChild(td);
+    
+    td = document.createElement('td');
+    td.appendChild(link);
+    td.setAttribute('colspan', '3');
+    tr.appendChild(td);
 }
 
 // RIPPED FROM THE INTERWEBS!
@@ -188,8 +251,20 @@ playlistSY = {
                 playlistSY.getAlbumTracks(playlistSY.albums[i].URL, playlistSY.albums[i].rId);
             }
         }
+        playlistSY.addRows();
+    },
+    
+    addRows: function () {
+        'use strict';
+        var i,
+            len;
         
-        playlistSY.playlistAddTracks();
+        i = 0;
+        len = playlistSY.songs.length;
+        
+        for (i; i < len; i++) {
+            createRow('SY', playlistSY.songs[i].title, playlistSY.songs[i].URL);
+        }
     },
     
     getAlbumTracks: function (URL, rId) {
@@ -198,6 +273,7 @@ playlistSY = {
             i,
             len,
             response,
+            title,
             xhr;
         
         albumId = URL.substring(31, 53);
@@ -212,10 +288,14 @@ playlistSY = {
                 len = response.items.length;
                 
                 for (i = 0; i < len; i++) {
+                    
+                    title = response.items[i].artists[0].name + ' - ' + response.items[i].name;
+                    
                     playlistSY.songs.push({
                         uri: response.items[i].uri,
                         rId: rId,
-                        URL: 'https://open.spotify.com/track/' + response.items[i].id
+                        URL: 'https://open.spotify.com/track/' + response.items[i].id,
+                        title: title
                     });
                 }
             }
@@ -235,33 +315,61 @@ playlistSY = {
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
                 playlistSY.userId = JSON.parse(xhr.response).id;
-                playlistSY.playlistInstantiator();
+                playlistSY.addAlbumTracks();
             }
         };
         xhr.send();
     },
     
-    parseSYId: function (URL, rId) {
+    parseSYId: function (URL, rId, title) {
         'use strict';
         
         if (URL.substring(25, 30) === 'track') {
             playlistSY.songs.push({
                 uri: 'spotify:track:' + URL.substring(31).split('?')[0],
                 rId: rId,
-                URL: URL
+                URL: URL,
+                title: title
             });
         }
         
         if (URL.substring(25, 30) === 'album') {
             playlistSY.albums.push({
                 rId: rId,
-                URL: URL
+                URL: URL,
+                title: title
             });
         }
         
     },
     
-    playlistAddTracks: function () {
+    playlistInstantiator: function () {
+        'use strict';
+        var params,
+            response,
+            xhr;
+        
+        playlistSY.playlistName = generatePlaylistName();
+        
+        xhr = new XMLHttpRequest();
+        params = {
+            name: playlistSY.playlistName
+        };
+        
+        xhr.open('post', 'https://api.spotify.com/v1/users/' + playlistSY.userId + '/playlists', true);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + playlistSY.token);
+        xhr.setRequestHeader('content-type', 'application/json');
+        // Listen for response
+        xhr.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 201) {
+                playlistSY.playlistId = JSON.parse(xhr.response).id;
+                playlistSY.saveTracks();
+            }
+        };
+        xhr.send(JSON.stringify(params));
+    },
+    
+    saveTracks: function () {
         'use strict';
         var i,
             len,
@@ -298,32 +406,6 @@ playlistSY = {
         xhr.send(JSON.stringify(params));
         
     },
-    
-    playlistInstantiator: function () {
-        'use strict';
-        var params,
-            response,
-            xhr;
-        
-        playlistSY.playlistName = generatePlaylistName();
-        
-        xhr = new XMLHttpRequest();
-        params = {
-            name: playlistSY.playlistName
-        };
-        
-        xhr.open('post', 'https://api.spotify.com/v1/users/' + playlistSY.userId + '/playlists', true);
-        xhr.setRequestHeader('Authorization', 'Bearer ' + playlistSY.token);
-        xhr.setRequestHeader('content-type', 'application/json');
-        // Listen for response
-        xhr.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 201) {
-                playlistSY.playlistId = JSON.parse(xhr.response).id;
-                playlistSY.addAlbumTracks();
-            }
-        };
-        xhr.send(JSON.stringify(params));
-    }
 };
 
 
@@ -378,7 +460,7 @@ playlistYT = {
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                playlistYT.playlistInstantiator();
+                playlistYT.addRows();
             }
         };
         xhr.send();
@@ -395,7 +477,20 @@ playlistYT = {
     },
     // End OAuth
     
-    parseYTId: function (URL, rId) {
+    addRows: function () {
+        'use strict';
+        var i,
+            len;
+        
+        i = 0;
+        len = playlistYT.songs.length;
+        
+        for (i; i < len; i++) {
+            createRow('YT', playlistYT.songs[i].title, playlistYT.songs[i].URL);
+        }
+    },
+    
+    parseYTId: function (URL, rId, title) {
         'use strict';
         var idMatcher,
             ytId;
@@ -406,12 +501,40 @@ playlistYT = {
         playlistYT.songs.push({
             ytId: ytId,
             rId: rId,
-            URL: URL
+            URL: URL,
+            title: title
         });
     },
     
-    //finish
-    playlistAddTrack: function () {
+    playlistInstantiator: function () {
+        'use strict';
+        var params,
+            response,
+            xhr;
+        
+        playlistYT.playlistName = generatePlaylistName();
+        
+        xhr = new XMLHttpRequest();
+        params = {
+            snippet: {
+                title: playlistYT.playlistName
+            }
+        };
+        
+        xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlists?access_token=' + playlistYT.token + '&part=snippet', true);
+        xhr.setRequestHeader('content-type', 'application/json');
+        
+        // Listen for response
+        xhr.onreadystatechange = function () {
+            if (this.readyState === 4 && this.status === 200) {
+                playlistYT.playlistId = JSON.parse(xhr.response).id;
+                playlistYT.saveTracks();
+            }
+        };
+        xhr.send(JSON.stringify(params));
+    },
+    
+    saveTracks: function () {
         'use strict';
         var params,
             rId,
@@ -444,48 +567,19 @@ playlistYT = {
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                //TODO Add success tracking
                 playlistYT.songs.splice(0, 1);
-                playlistYT.playlistAddTrack();
+                playlistYT.saveTrack();
             }
             
             if (this.readyState === 4 && this.status === 404) {
                 errorHandling.errors.push(rId + ' - ' + URL);
                 playlistYT.songs.splice(0, 1);
-                playlistYT.playlistAddTrack();
+                playlistYT.saveTrack();
             }
         };
         xhr.send(JSON.stringify(params));
         
     },
-    
-    playlistInstantiator: function () {
-        'use strict';
-        var params,
-            response,
-            xhr;
-        
-        playlistYT.playlistName = generatePlaylistName();
-        
-        xhr = new XMLHttpRequest();
-        params = {
-            snippet: {
-                title: playlistYT.playlistName
-            }
-        };
-        
-        xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlists?access_token=' + playlistYT.token + '&part=snippet', true);
-        xhr.setRequestHeader('content-type', 'application/json');
-        
-        // Listen for response
-        xhr.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
-                playlistYT.playlistId = JSON.parse(xhr.response).id;
-                playlistYT.playlistAddTrack();
-            }
-        };
-        xhr.send(JSON.stringify(params));
-    }
 };
 
 // redditSaved contains all variables and functions used to import youtube links from a reddit user's saved list
@@ -577,7 +671,12 @@ redditSaved = {
             i,
             params,
             response,
-            xhr;
+            spotify,
+            xhr,
+            youtube;
+        
+        spotify = document.getElementById('checkSpotify').checked;
+        youtube = document.getElementById('checkYouTube').checked;
         
         xhr = new XMLHttpRequest();
         params = '?limit=100';
@@ -590,34 +689,31 @@ redditSaved = {
                 response = JSON.parse(xhr.response);
                 count = response.data.children.length;
                 for (i = count - 1; i >= 0; i--) {
-                    if (response.data.children[i].data.domain === 'open.spotify.com') {
-                        playlistSY.parseSYId(response.data.children[i].data.url, response.data.children[i].data.name);
-                    }
-                    /*
-                    if (response.data.children[i].data.domain === 'youtube.com' || response.data.children[i].data.domain === 'youtu.be') {
-                        playlistYT.parseYTId(response.data.children[i].data.url, response.data.children[i].data.name);
+                    if (spotify && response.data.children[i].data.domain === 'open.spotify.com') {
+                        
+                        if(!!response.data.children[i].data.media) {
+                            playlistSY.parseSYId(response.data.children[i].data.url, response.data.children[i].data.name, response.data.children[i].data.media.oembed.description);
+                        } else {
+                            playlistSY.parseSYId(response.data.children[i].data.url, response.data.children[i].data.name, response.data.children[i].data.title);
+                        }
                     }
                     
+                    if (youtube && (response.data.children[i].data.domain === 'youtube.com' || response.data.children[i].data.domain === 'youtu.be')) {
+                        
+                        if(!!response.data.children[i].data.media) {
+                            playlistYT.parseYTId(response.data.children[i].data.url, response.data.children[i].data.name, response.data.children[i].data.media.oembed.title);
+                        } else {
+                            playlistYT.parseYTId(response.data.children[i].data.url, response.data.children[i].data.name, response.data.children[i].data.title);
+                        }
+                    }
+                    /*
                     if (response.data.children[i].data.domain === 'soundcloud.com') {
                         parseSCTitle(response.data.children[i].data.url, response.data.children[i].data.name);
                     }
                     */
                 }
-                if (playlistSY.songs.length !== 0) {
-                    playlistSY.authTokenGet();
-                }
-
-                /*
-                if (playlistYT.songs.length !== 0) {
-                    playlistYT.authTokenGet();
-                }
                 
-                if (playlistSC.songs.length !== 0) {
-                    playlistSC.authTokenGet();
-                }
-                */
-                
-                
+                tableBuilder();
             }
             
         };
@@ -646,8 +742,33 @@ redditSaved = {
     
 };
 
-// Create and modify the playlist object which contains all songs, the song index, and playlist functions
+function tableBuilder() {
+    'use strict';
+    
+    if (playlistYT.songs.length !== 0) {
+        playlistYT.authTokenGet();
+    }
+    
+    
+    if (playlistSY.songs.length !== 0 || playlistSY.albums.length !== 0) {
+        playlistSY.authTokenGet();
+    }             
 
+    /*
+    if (playlistSC.songs.length !== 0) {
+        playlistSC.authTokenGet();
+    }
+    */
+};
+
+function savePlaylists () {
+    'use strict';
+    
+    playlistYT.playlistInstantiator();
+    playlistSY.playlistInstantiator();
+    
+}
 
 document.getElementById('playlistRx').addEventListener('click', redditSaved.authTokenGet);
+document.getElementById('saveSelected').addEventListener('click', savePlaylists);
 //document.getElementById('unsave').addEventListener('click', placeholder);

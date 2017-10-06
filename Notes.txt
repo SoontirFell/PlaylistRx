@@ -1,39 +1,54 @@
 To Do
     #
-        Confirmation dialogue for playlist creation
+        Check/Uncheck All
+    #    
+        Check/Uncheck Spotify
+    #    
+        Check/Uncheck YouTube
+    # 
+        Save Checked
+    #    
+        Dismiss Checked
     #
-        Add Wizard to customize each vendors saved Playlist
-            Layout
-                Header - Sticky
-                    Left
-                        Check/Uncheck All
-                        Playlist Name Text Input
-                    Right
-                        Save Playlists - Grayed out until Checked 
-                        Dismiss - Grayed out until Checked
-                Body
-                    Subheader rows to break up different services
-                    Checkboxes for each song
-                    Source Title (YT = data.media.oembed.title || SY = data.media.oembed.description) - Links to source (data.url)
+        When using "Dismiss" prompt user with diaglogue asking if they want to remove the selected from Reddit Saved too.
+    ---
     #
-        When using "Dismiss" button prompt user with diaglogue asking if they want to remove the selected from Reddit Saved too.
-    #
-        Toggles for each service
-    #
-        Better method to isolate attribute/parameter for authValidate (getAllUrlParams?)
+        Increase # of reddit saved links imported (multi-request)
     #
         Increase # of spotify links saved (multi-request)
     # 
         Allow playlist links to import
     #
-        Increase # of reddit saved links imported (multi-request)
+        Better method to isolate attribute/parameter for authValidate (getAllUrlParams?)
     #
         Setup Refresh tokens
             local storage?
     *
         Create SoundCloud playlists - Requires SC to allow new app registration
-    
 
+
+Reddit Saved Button Flow:
+    Check Reddit Saved
+    Parse Reddit Saved to filter out links for services
+    
+    (Parse YT links to filter by type)
+    Add YT tracks to respective array
+    (Add YT playlists to respective array)
+    
+    Parse SY links to filter by type
+    (Add SY Playlists to respective array)
+    Add SY Albums to respective array
+    Add SY Tracks to respective array
+    
+    Authenticate YT
+    (Parse YT playlist array to track array)
+    Parse YT track array into table rows
+    
+    Authenticate SY
+    (Parse SY playlist array to track array)
+    Parse SY album array to track array
+    Parse SY track array into table rows
+    
 ---
 JS Design Notes:
 Identify patterns to use based on functions needed.

@@ -10,9 +10,18 @@ Off-White: #CFCFCF
 /* Ids */
 
 /* Tags */
+a {
+    color: #CFCFCF;
+    
+}
+
 body {
     background-color: #010400;
     color: ghostwhite;
+}
+
+label {
+    font-size: 18px;
 }
 
 table {
@@ -26,9 +35,6 @@ th {
     border-bottom: #CFCFCF solid 2px;
 }
 
-td  {
-    border-bottom: #303030 solid 2px;
-}
 
 th:nth-child(1) {
     width: 10px;
@@ -53,6 +59,7 @@ th:nth-child(3), th:nth-child(4) {
 .button {
     background-color: #098200;
     border-radius: 10px;
+    cursor: pointer;
     display: inline-block;
     padding: 2px;
     text-align: center;
@@ -71,6 +78,7 @@ th:nth-child(3), th:nth-child(4) {
 .smallButton {
     background-color: #098200;
     border-radius: 10px;
+    cursor: pointer;
     display: inline-block;
     padding: 2px;
     text-align: center;
