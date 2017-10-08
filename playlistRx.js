@@ -40,7 +40,7 @@ function newState() {
     }
     
     return state;
-}
+};
 
 function generatePlaylistName() {
     'use strict';
@@ -51,13 +51,23 @@ function generatePlaylistName() {
     date = dateRaw.getFullYear(dateRaw) + '/' + (dateRaw.getMonth(dateRaw) + 1)  + '/' + dateRaw.getDate(dateRaw);
     
     return 'PlaylistRx_' + date;
+};
+
+function toggleCheckedClass(event, id) {
+    'use strict';
+    var classes;
+    
+    classes = event?event.target.classList:id.classList;
+    
+    classes.contains('checked')?classes.remove('checked'):classes.add('checked');
 }
 
-function createRow(service, title, url) {
+function createRow(service, title, url, count) {
     'use strict';
     var checkbox,
         checkboxId,
         link,
+        serviceClass,
         spotifyPlacer,
         td,
         tr,
@@ -71,25 +81,15 @@ function createRow(service, title, url) {
     
     switch (service) {
     case 'SY':
-        if (spotifyPlacer.id === 'spotifySubheader') {
-            trId = 'spotifyTrack1';
-            checkboxId = 'spotifyCheck1';
-        } else {
-            trId = parseInt(spotifyPlacer.id.substring(12), 10) + 1;
-            checkboxId = 'spotifyCheck' + trId;
-            trId = 'spotifyTrack' + trId;
-        }
+        trId = 'spotifyTrack' + count;
+        checkboxId = 'spotifyCheck' + count;
+        serviceClass = 'Spotify';
         spotifyPlacer.after(tr);
         break;
     case 'YT':
-        if (youtubePlacer.id === 'youtubeSubheader') {
-            trId = 'youtubeTrack1';
-            checkboxId = 'youtubeCheck1';
-        } else {
-            trId = parseInt(spotifyPlacer.id.substring(12), 10) + 1;
-            checkboxId = 'youtubeCheck' + trId;
-            trId = 'youtubeTrack' + trId;
-        }
+        trId = 'youtubeTrack' + count;
+        checkboxId = 'youtubeCheck' + count;
+        serviceClass = 'YouTube';
         youtubePlacer.after(tr);
         break;
     default:
@@ -100,7 +100,9 @@ function createRow(service, title, url) {
     checkbox.setAttribute('id', checkboxId);
     checkbox.setAttribute('name', checkboxId);
     checkbox.setAttribute('type', 'checkbox');
+    checkbox.classList.add(serviceClass, 'checked');
     checkbox.checked = true;
+    checkbox.addEventListener('change', toggleCheckedClass);
     
     link = document.createElement('a');
     link.textContent = title;
@@ -114,6 +116,55 @@ function createRow(service, title, url) {
     td.appendChild(link);
     td.setAttribute('colspan', '3');
     tr.appendChild(td);
+};
+
+function checkAll(event, service) {
+    'use strict';
+    var i,
+        len,
+        status,
+        targets;
+    
+    i = 0;
+    status = event.target.checked;
+    
+    switch (service) {
+    case 'SY':
+        targets = document.getElementsByClassName('Spotify');
+        break;
+    case 'YT':
+        targets = document.getElementsByClassName('YouTube');
+        break;
+    default:
+        targets = document.getElementsByTagName('input');
+    }
+    
+    len = targets.length;
+    
+    for(i; i < len; i++) {
+        if(targets[i].checked !== status) {
+            targets[i].checked = status;
+            toggleCheckedClass(null, targets[i]);
+        }
+    }
+};
+
+function serviceHasCheck(service) {
+    'use strict';
+    var i,
+        len,
+        nodes;
+    
+    i = 0;
+    nodes = document.getElementsByClassName(service);
+    len = service.length;
+    
+    for(i; i < len; i++) {
+        if(nodes[i].checked === true) {
+            playlistYT.playlistInstantiator();
+            return true;
+        }
+    }
 }
 
 // RIPPED FROM THE INTERWEBS!
@@ -185,7 +236,7 @@ function getAllUrlParams(url) {
     }
 
     return obj;
-}
+};
 
 // END INTERWEB RIPS
 
@@ -263,7 +314,7 @@ playlistSY = {
         len = playlistSY.songs.length;
         
         for (i; i < len; i++) {
-            createRow('SY', playlistSY.songs[i].title, playlistSY.songs[i].URL);
+            createRow('SY', playlistSY.songs[i].title, playlistSY.songs[i].URL, i);
         }
     },
     
@@ -377,16 +428,14 @@ playlistSY = {
             uriArray,
             xhr;
         
-        if (playlistSY.songs.length === 0) {
-            return;
-        }
-        
         i = 0;
         len = playlistSY.songs.length;
         uriArray = [];
         
         for (i; i < len; i++) {
-            uriArray.push(playlistSY.songs[i].uri);
+            if(document.getElementById('spotifyCheck' + i).classList.contains('checked')) {
+                uriArray.push(playlistSY.songs[i].uri);
+            }
         }
         
         xhr = new XMLHttpRequest();
@@ -486,7 +535,7 @@ playlistYT = {
         len = playlistYT.songs.length;
         
         for (i; i < len; i++) {
-            createRow('YT', playlistYT.songs[i].title, playlistYT.songs[i].URL);
+            createRow('YT', playlistYT.songs[i].title, playlistYT.songs[i].URL, i);
         }
     },
     
@@ -536,49 +585,46 @@ playlistYT = {
     
     saveTracks: function () {
         'use strict';
-        var params,
+        var i,
+            len,
+            params,
             rId,
             URL,
             videoId,
             xhr;
         
-        if (playlistYT.songs.length === 0) {
-            return;
-        }
+        i = 0;
+        len = playlistYT.songs.length;
         
-        rId = playlistYT.songs[0].rId;
-        URL = playlistYT.songs[0].URL;
-        videoId = playlistYT.songs[0].ytId;
-        
-        xhr = new XMLHttpRequest();
-        params = {
-            snippet: {
-                playlistId: playlistYT.playlistId,
-                resourceId: {
-                    kind: 'youtube#video',
-                    videoId: videoId
-                }
+        for(i; i < len; i++) {
+            if(document.getElementById('youtubeCheck' + i).classList.contains('checked')) {
+                xhr = new XMLHttpRequest();
+                rId = playlistYT.songs[i].rId;
+                URL = playlistYT.songs[i].URL;
+                videoId = playlistYT.songs[i].ytId;
+
+                params = {
+                    snippet: {
+                        playlistId: playlistYT.playlistId,
+                        resourceId: {
+                            kind: 'youtube#video',
+                            videoId: videoId
+                        }
+                    }
+                };
+
+                xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlistItems?access_token=' + playlistYT.token + '&part=snippet', false);
+                xhr.setRequestHeader('content-type', 'application/json');
+
+                // Listen for response
+                xhr.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 404) {
+                        errorHandling.errors.push(rId + ' - ' + URL);
+                    }
+                };
+                xhr.send(JSON.stringify(params));
             }
-        };
-        
-        xhr.open('post', 'https://www.googleapis.com/youtube/v3/playlistItems?access_token=' + playlistYT.token + '&part=snippet', true);
-        xhr.setRequestHeader('content-type', 'application/json');
-        
-        // Listen for response
-        xhr.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
-                playlistYT.songs.splice(0, 1);
-                playlistYT.saveTrack();
-            }
-            
-            if (this.readyState === 4 && this.status === 404) {
-                errorHandling.errors.push(rId + ' - ' + URL);
-                playlistYT.songs.splice(0, 1);
-                playlistYT.saveTrack();
-            }
-        };
-        xhr.send(JSON.stringify(params));
-        
+        }      
     },
 };
 
@@ -764,11 +810,24 @@ function tableBuilder() {
 function savePlaylists () {
     'use strict';
     
-    playlistYT.playlistInstantiator();
-    playlistSY.playlistInstantiator();
+    if(serviceHasCheck('Spotify')) {
+        playlistSY.playlistInstantiator();
+    }
     
-}
+    if(serviceHasCheck('YouTube')) {
+        playlistYT.playlistInstantiator();
+    }
+};
 
 document.getElementById('playlistRx').addEventListener('click', redditSaved.authTokenGet);
 document.getElementById('saveSelected').addEventListener('click', savePlaylists);
-//document.getElementById('unsave').addEventListener('click', placeholder);
+
+document.getElementById('checkAll').addEventListener('change', function(event) {
+    checkAll(event);
+});
+document.getElementById('spotifyCheckAll').addEventListener('change', function(event) {
+    checkAll(event, 'SY');
+});
+document.getElementById('youtubeCheckAll').addEventListener('change', function(event) {
+    checkAll(event, 'YT');
+});
