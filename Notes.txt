@@ -1,25 +1,24 @@
 To Do
     #    
         Dismiss Checked
+    ---
     #
         Create checkbox for unsaving from reddit upon dismissal
             Confirm dismissal when unsaving
-    ---
     #
         Increase # of reddit saved links imported (multi-request)
     #
         Increase # of spotify links saved (multi-request)
     #
         Label dead YT links
+    ---
     # 
         Allow playlist links to import
     #
         Sticky headers
+    ---
     #
         Better method to isolate attribute/parameter for authValidate (getAllUrlParams?)
-    #
-        Setup Refresh tokens
-            local storage?
     *
         Create SoundCloud playlists - Requires SC to allow new app registration
 
