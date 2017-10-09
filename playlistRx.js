@@ -161,7 +161,6 @@ function serviceHasCheck(service) {
     
     for(i; i < len; i++) {
         if(nodes[i].checked === true) {
-            playlistYT.playlistInstantiator();
             return true;
         }
     }
@@ -449,7 +448,7 @@ playlistSY = {
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                console.log('SY Success');
+                
             }
         };
         xhr.send(JSON.stringify(params));
@@ -766,13 +765,13 @@ redditSaved = {
         xhr.send(params);
     },
     
-    unsave: function (num) {
+    unsave: function (rId) {
         'use strict';
         var params,
             xhr;
+        
+        params = 'id=' + rId;
         xhr = new XMLHttpRequest();
-        //redefine params
-        //params = 'id=' + playlist.songs[num].rId;
         xhr.open('post', 'https://oauth.reddit.com/api/unsave', true);
         xhr.setRequestHeader('Authorization', 'bearer ' + redditSaved.token);
         xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -780,12 +779,41 @@ redditSaved = {
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                //playlist.removeSong(num);
+                
             }
         };
         xhr.send(params);
-    }
+    },
     
+    unsaveSelected: function () {
+        'use strict';
+        var checked,
+            i,
+            len,
+            num;
+
+        checked = document.getElementsByClassName('checked');
+        i = 0;
+        len = checked.length;
+        
+        for(i; i < len; i++) {
+            if(checked[i].classList.contains('Spotify')) {
+                num = parseInt(checked[i].id.substring(12), 10);
+                redditSaved.unsave(playlistSY.songs[num].rId);
+                //Must be placed in both to avoid affecting higher level checkboxes, e.g. Check All
+                checked[i].parentNode.parentNode.parentNode.removeChild(checked[i].parentNode.parentNode);
+            }
+            
+            if(checked[i].classList.contains('YouTube')) {
+                num = parseInt(checked[i].id.substring(12), 10);
+                redditSaved.unsave(playlistYT.songs[num].rId);
+                //Must be placed in both to avoid affecting higher level checkboxes, e.g. Check All
+                checked[i].parentNode.parentNode.parentNode.removeChild(checked[i].parentNode.parentNode);
+            }
+            
+        
+        }
+    }
 };
 
 function tableBuilder() {
@@ -819,8 +847,10 @@ function savePlaylists () {
     }
 };
 
+
 document.getElementById('playlistRx').addEventListener('click', redditSaved.authTokenGet);
 document.getElementById('saveSelected').addEventListener('click', savePlaylists);
+document.getElementById('unsaveSelected').addEventListener('click', redditSaved.unsaveSelected);
 
 document.getElementById('checkAll').addEventListener('change', function(event) {
     checkAll(event);

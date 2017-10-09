@@ -1,10 +1,6 @@
 To Do
-    #    
-        Dismiss Checked
-    ---
     #
-        Create checkbox for unsaving from reddit upon dismissal
-            Confirm dismissal when unsaving
+        Show confirmation dialoge for unsave
     #
         Increase # of reddit saved links imported (multi-request)
     #
@@ -16,6 +12,8 @@ To Do
         Allow playlist links to import
     #
         Sticky headers
+    # 
+        Custom playlist names
     ---
     #
         Better method to isolate attribute/parameter for authValidate (getAllUrlParams?)
