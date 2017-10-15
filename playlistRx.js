@@ -24,12 +24,20 @@ function newState() {
 function generatePlaylistName() {
     'use strict';
     var date,
-        dateRaw;
+        dateRaw,
+        input,
+        name;
     
-    dateRaw = new Date();
-    date = dateRaw.getFullYear(dateRaw) + '/' + (dateRaw.getMonth(dateRaw) + 1)  + '/' + dateRaw.getDate(dateRaw);
+    input = document.getElementById('playlistNameInput').value;
     
-    return 'PlaylistRx_' + date;
+    if (!!input) {
+        name = input;
+    } else {
+        dateRaw = new Date();
+        date = dateRaw.getFullYear(dateRaw) + '/' + (dateRaw.getMonth(dateRaw) + 1)  + '/' + dateRaw.getDate(dateRaw);
+        name = 'PlaylistRx_' + date;
+    }
+    return name;
 };
 
 function toggleCheckedClass(event, id) {

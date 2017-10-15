@@ -3,8 +3,6 @@ To Do
         Allow playlist links to import
     #
         Sticky headers
-    # 
-        Custom playlist names
     ---
     *
         Create SoundCloud playlists - Requires SC to allow new app registration
