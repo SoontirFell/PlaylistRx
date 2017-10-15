@@ -1,13 +1,4 @@
 To Do
-    #
-        Show confirmation dialoge for unsave
-    #
-        Increase # of reddit saved links imported (multi-request)
-    #
-        Increase # of spotify links saved (multi-request)
-    #
-        Label dead YT links
-    ---
     # 
         Allow playlist links to import
     #
@@ -15,8 +6,6 @@ To Do
     # 
         Custom playlist names
     ---
-    #
-        Better method to isolate attribute/parameter for authValidate (getAllUrlParams?)
     *
         Create SoundCloud playlists - Requires SC to allow new app registration
 

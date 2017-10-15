@@ -5,27 +5,6 @@ var //playlistSC,
     playlistYT,
     redditSaved;
 
-
-var errorHandling = {
-    
-    errors: [],
-    
-    postErrors: function () {
-        'use strict';
-        var i,
-            len;
-        
-        i = 0;
-        len = errorHandling.errors.length;
-        
-        if (len !== 0) {
-            for (i; i < len; i++) {
-                console.log(errorHandling.errors[i]);
-            }
-        }
-    }
-};
-
 function newState() {
     'use strict';
     var i,
@@ -96,6 +75,8 @@ function createRow(service, title, url, count) {
         return;
     }
     
+    tr.setAttribute('id', trId);
+    
     checkbox = document.createElement('input');
     checkbox.setAttribute('id', checkboxId);
     checkbox.setAttribute('name', checkboxId);
@@ -104,13 +85,13 @@ function createRow(service, title, url, count) {
     checkbox.checked = true;
     checkbox.addEventListener('change', toggleCheckedClass);
     
-    link = document.createElement('a');
-    link.textContent = title;
-    link.setAttribute('href', url);
-    
     td = document.createElement('td');
     td.appendChild(checkbox);
     tr.appendChild(td);
+    
+    link = document.createElement('a');
+    link.innerHTML = title;
+    link.setAttribute('href', url);
     
     td = document.createElement('td');
     td.appendChild(link);
@@ -157,7 +138,7 @@ function serviceHasCheck(service) {
     
     i = 0;
     nodes = document.getElementsByClassName(service);
-    len = service.length;
+    len = nodes.length;
     
     for(i; i < len; i++) {
         if(nodes[i].checked === true) {
@@ -165,79 +146,6 @@ function serviceHasCheck(service) {
         }
     }
 }
-
-// RIPPED FROM THE INTERWEBS!
-// Credit to: https://www.sitepoint.com/get-url-parameters-with-javascript/
-
-function getAllUrlParams(url) {
-    'use strict';
-    var queryString,
-        obj,
-        arr,
-        i,
-        a,
-        paramNum,
-        paramName,
-        paramValue;
-
-    // get query string from url (optional) or window
-    queryString = url ? url.split('?')[1] : window.location.search.slice(1);
-
-    // we'll store the parameters here
-    obj = {};
-
-    // if query string exists
-    if (queryString) {
-
-        // stuff after # is not part of query string, so get rid of it
-        queryString = queryString.split('#')[0];
-
-        // split our query string into its component parts
-        arr = queryString.split('&');
-
-        for (i = 0; i < arr.length; i++) {
-            // separate the keys and the values
-            a = arr[i].split('=');
-
-            // in case params look like: list[]=thing1&list[]=thing2
-            paramNum = undefined;
-            paramName = a[0].replace(/\[\d*\]/, function (v) {
-                paramNum = v.slice(1, -1);
-                return '';
-            });
-
-            // set parameter value (use 'true' if empty)
-            paramValue = typeof (a[1]) === 'undefined' ? true : a[1];
-
-            // (optional) keep case consistent
-            paramName = paramName.toLowerCase();
-            paramValue = paramValue.toLowerCase();
-
-            // if parameter name already exists
-            if (obj[paramName]) {
-            // convert value to array (if still string)
-                if (typeof obj[paramName] === 'string') {
-                    obj[paramName] = [obj[paramName]];
-                }
-                // if no array index number specified...
-                if (typeof paramNum === 'undefined') {
-                    // put the value on the end of the array
-                    obj[paramName].push(paramValue);
-                } else {
-                    // if array index number specified put the value at that index number
-                    obj[paramName][paramNum] = paramValue;
-                }
-            } else {
-                // if param name doesn't exist yet, set it
-                obj[paramName] = paramValue;
-            }
-        }
-    }
-
-    return obj;
-};
-
-// END INTERWEB RIPS
 
 playlistSY = {
     //vars
@@ -419,7 +327,7 @@ playlistSY = {
         xhr.send(JSON.stringify(params));
     },
     
-    saveTracks: function () {
+    saveTracks: function (after) {
         'use strict';
         var i,
             len,
@@ -427,8 +335,25 @@ playlistSY = {
             uriArray,
             xhr;
         
-        i = 0;
-        len = playlistSY.songs.length;
+        if (after) {
+            i = after;
+            if ((after + 100) > playlistSY.songs.length) {
+                len = playlistSY.songs.length;
+                after = false;
+            } else {
+                len = after + 100;
+                after = len;
+            }
+        } else {
+            i = 0;
+            if (playlistSY.songs.length > 100 && after !== false) {
+                len = 100;
+                after = len;
+            } else {
+                len = playlistSY.songs.length;
+            } 
+        }
+        
         uriArray = [];
         
         for (i; i < len; i++) {
@@ -448,7 +373,7 @@ playlistSY = {
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                
+                playlistSY.saveTracks(after);
             }
         };
         xhr.send(JSON.stringify(params));
@@ -588,6 +513,7 @@ playlistYT = {
             len,
             params,
             rId,
+            target,
             URL,
             videoId,
             xhr;
@@ -617,8 +543,10 @@ playlistYT = {
 
                 // Listen for response
                 xhr.onreadystatechange = function () {
-                    if (this.readyState === 4 && this.status === 404) {
-                        errorHandling.errors.push(rId + ' - ' + URL);
+                    if (this.status === 404) {
+                        target = document.getElementById('youtubeTrack' + i).childNodes[1];
+                        target.innerHTML += ' - Video Not Found';
+                        target.classList.add('red');
                     }
                 };
                 xhr.send(JSON.stringify(params));
@@ -710,7 +638,7 @@ redditSaved = {
         xhr.send();
     },
     
-    retrieveSaved: function (username) {
+    retrieveSaved: function (username, after) {
         'use strict';
         var count,
             i,
@@ -725,6 +653,11 @@ redditSaved = {
         
         xhr = new XMLHttpRequest();
         params = '?limit=100';
+        
+        if(after) {
+            params = params + '&after=' + after;
+        }
+        
         xhr.open('get', 'https://oauth.reddit.com/user/' + username + '/saved' + params, true);
         xhr.setRequestHeader('Authorization', 'bearer ' + redditSaved.token);
         xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
@@ -733,7 +666,8 @@ redditSaved = {
             if (this.readyState === 4 && this.status === 200) {
                 response = JSON.parse(xhr.response);
                 count = response.data.children.length;
-                for (i = count - 1; i >= 0; i--) {
+                after = response.data.after;
+                for (i = 0; i < count; i++) {
                     if (spotify && response.data.children[i].data.domain === 'open.spotify.com') {
                         
                         if(!!response.data.children[i].data.media) {
@@ -757,8 +691,7 @@ redditSaved = {
                     }
                     */
                 }
-                
-                tableBuilder();
+                after?redditSaved.retrieveSaved(username, after):tableBuilder();
             }
             
         };
@@ -772,7 +705,7 @@ redditSaved = {
         
         params = 'id=' + rId;
         xhr = new XMLHttpRequest();
-        xhr.open('post', 'https://oauth.reddit.com/api/unsave', true);
+        xhr.open('post', 'https://oauth.reddit.com/api/unsave', false);
         xhr.setRequestHeader('Authorization', 'bearer ' + redditSaved.token);
         xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         
@@ -789,14 +722,12 @@ redditSaved = {
         'use strict';
         var checked,
             i,
-            len,
             num;
 
         checked = document.getElementsByClassName('checked');
-        i = 0;
-        len = checked.length;
+        i = checked.length - 1;
         
-        for(i; i < len; i++) {
+        for(i; i >= 0; i--) {
             if(checked[i].classList.contains('Spotify')) {
                 num = parseInt(checked[i].id.substring(12), 10);
                 redditSaved.unsave(playlistSY.songs[num].rId);
@@ -810,11 +741,16 @@ redditSaved = {
                 //Must be placed in both to avoid affecting higher level checkboxes, e.g. Check All
                 checked[i].parentNode.parentNode.parentNode.removeChild(checked[i].parentNode.parentNode);
             }
-            
-        
         }
     }
 };
+
+function confirmUnsaved() {
+    'use strict';
+    if(window.confirm('Remove these songs from PlaylistRx and your Reddit Saved list?')) {
+        redditSaved.unsaveSelected();
+    }
+}
 
 function tableBuilder() {
     'use strict';
@@ -847,10 +783,35 @@ function savePlaylists () {
     }
 };
 
+function clearPlaylistRx() {
+    'use strict';
+    var checked,
+        i;
+    
+    playlistSY.songs = [];
+    playlistYT.songs = [];
 
-document.getElementById('playlistRx').addEventListener('click', redditSaved.authTokenGet);
+    checked = document.getElementsByClassName('checked');
+    i = checked.length - 1;
+
+    for(i; i >= 0; i--) {
+        if(checked[i].classList.contains('Spotify') || checked[i].classList.contains('YouTube')) {
+            checked[i].parentNode.parentNode.parentNode.removeChild(checked[i].parentNode.parentNode);
+        }
+
+    }
+};
+
+function getRedditSaved () {
+    'use strict';
+    clearPlaylistRx();
+    redditSaved.authTokenGet();
+};
+
+
+document.getElementById('playlistRx').addEventListener('click', getRedditSaved);
 document.getElementById('saveSelected').addEventListener('click', savePlaylists);
-document.getElementById('unsaveSelected').addEventListener('click', redditSaved.unsaveSelected);
+document.getElementById('unsaveSelected').addEventListener('click', confirmUnsaved);
 
 document.getElementById('checkAll').addEventListener('change', function(event) {
     checkAll(event);

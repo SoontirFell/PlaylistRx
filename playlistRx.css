@@ -86,6 +86,10 @@ th:nth-child(3), th:nth-child(4) {
     width: 75px;
 }
 
+.red {
+    color: red;
+}
+
 /* Utilities */
 .inlineBlock {
     display: inline-block;
