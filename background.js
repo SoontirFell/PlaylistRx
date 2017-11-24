@@ -4,7 +4,7 @@ function openMyPage() {
     'use strict';
     
     chrome.tabs.create({
-        "url": chrome.extension.getURL("playlistRx.html")
+        "url": chrome.extension.getURL("index.html")
     });
 }
 

@@ -1,8 +1,18 @@
 To Do
-    # 
-        Allow playlist links to import
     #
-        Sticky headers
+        Update all modules to be private
+    #
+        Break like components out of modules into generic utilities
+            Oauth - syncs w/ identity replacement
+            Shawn's query parameter
+    #
+        Style
+            Sticky headers
+            Content scaling for multiple devices
+    #
+        Make web-friendly in copied version
+            Allow playlist links to import
+            Replace identity.launchwebauthflow      
     ---
     *
         Create SoundCloud playlists - Requires SC to allow new app registration

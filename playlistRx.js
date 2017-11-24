@@ -1,9 +1,11 @@
 /*globals browser, console, SC, YT */
 /*jslint plusplus: true */
 var //playlistSC,
+    alertSongs,
     playlistSY,
     playlistYT,
-    redditSaved;
+    redditSaved,
+    savedSongs;
 
 function newState() {
     'use strict';
@@ -19,7 +21,7 @@ function newState() {
     }
     
     return state;
-};
+}
 
 function generatePlaylistName() {
     'use strict';
@@ -38,15 +40,15 @@ function generatePlaylistName() {
         name = 'PlaylistRx_' + date;
     }
     return name;
-};
+}
 
 function toggleCheckedClass(event, id) {
     'use strict';
     var classes;
     
-    classes = event?event.target.classList:id.classList;
+    classes = event ? event.target.classList : id.classList;
     
-    classes.contains('checked')?classes.remove('checked'):classes.add('checked');
+    classes.contains('checked') ? classes.remove('checked') : classes.add('checked');
 }
 
 function createRow(service, title, url, count) {
@@ -105,7 +107,7 @@ function createRow(service, title, url, count) {
     td.appendChild(link);
     td.setAttribute('colspan', '3');
     tr.appendChild(td);
-};
+}
 
 function checkAll(event, service) {
     'use strict';
@@ -130,13 +132,13 @@ function checkAll(event, service) {
     
     len = targets.length;
     
-    for(i; i < len; i++) {
-        if(targets[i].checked !== status) {
+    for (i; i < len; i++) {
+        if (targets[i].checked !== status) {
             targets[i].checked = status;
             toggleCheckedClass(null, targets[i]);
         }
     }
-};
+}
 
 function serviceHasCheck(service) {
     'use strict';
@@ -148,12 +150,124 @@ function serviceHasCheck(service) {
     nodes = document.getElementsByClassName(service);
     len = nodes.length;
     
-    for(i; i < len; i++) {
-        if(nodes[i].checked === true) {
+    for (i; i < len; i++) {
+        if (nodes[i].checked === true) {
             return true;
         }
     }
 }
+
+
+alertSongs = (function () {
+    var prAddSavedSpotifySongs,
+        prAddSavedYoutubeSongs,
+        prAlertSavedSongs,
+        prSavedSpotifySongs,
+        prSavedYoutubeSongs,
+        prSpotifyFinished,
+        prYoutubeFinished;
+
+    prSavedSpotifySongs =  [];
+    prSavedYoutubeSongs = [];
+    prSpotifyFinished = false;
+    prYoutubeFinished = false;
+
+    prAddSavedSpotifySongs = function (song) {
+        'use strict';
+        if (typeof song === 'string'){
+            prSavedSpotifySongs.push(song);
+        } else {
+            console.log(song + 'is not a string.');
+        }
+    };
+
+    prAddSavedYoutubeSongs = function (song) {
+        'use strict';
+        if (typeof song === 'string'){
+            prSavedYoutubeSongs.push(song);
+        } else {
+            console.log(song + ' is not a string.');
+        }
+    };
+    
+    prAlertSavedSongs = function () {
+        'use strict';
+        var countSy,
+            countYt,
+            i,
+            msg,
+            spotifyReady,
+            youtubeReady;
+        
+        msg = '';
+        countSy = prSavedSpotifySongs.length;
+        countYt = prSavedYoutubeSongs.length;
+        
+        spotifyReady = (prSpotifyFinished && countSy >= 0);
+        youtubeReady = (prYoutubeFinished && countYt >= 0);
+
+        if (spotifyReady) {
+            msg += 'The following songs were saved to Spotify:\n';
+
+            for (i = 0; i < countSy; i++) {
+                msg += prSavedSpotifySongs[i];
+                if (i + 1 <= countSy) {
+                    msg += '\n';
+                }
+            }
+        }
+
+        if (youtubeReady) {
+            if (spotifyReady) {
+                msg += '\n \n';
+            }
+
+            msg += 'The following songs were saved to YouTube:\n';
+            
+            for (i = 0; i < countYt; i++) {
+                msg += prSavedYoutubeSongs[i];
+                if (i + 1 <= countYt) {
+                    msg += '\n';
+                }
+            }
+        }
+
+        if ((prSpotifyFinished || !serviceHasCheck('Spotify')) && (prYoutubeFinished || !serviceHasCheck('YouTube'))) {
+            window.alert(msg);
+            prSavedSpotifySongs = [];
+            prSavedYoutubeSongs = [];
+            prSpotifyFinished = false;
+            prYoutubeFinished = false;
+        }
+    };
+
+    return {
+        alertSavedSongs: function () {
+            'use strict';
+            prAlertSavedSongs();
+        },
+
+        addSavedSpotifySongs: function (song) {
+            'use strict';
+            prAddSavedSpotifySongs(song);
+        },
+
+        addSavedYoutubeSongs: function (song) {
+            'use strict';
+            prAddSavedYoutubeSongs(song);
+        },
+        
+        spotifyFinishedTrue: function () {
+            'use strict';
+            prSpotifyFinished = true;
+        },
+
+        youtubeFinishedTrue: function () {
+            'use strict';
+            prYoutubeFinished = true;
+        }
+    };
+})();
 
 playlistSY = {
     //vars
@@ -198,7 +312,7 @@ playlistSY = {
     authValidate: function (URL) {
         'use strict';
         var syState;
-        syState = URL.substring(330);
+        syState = URL.substring(298);
         if (playlistSY.state === syState) {
             playlistSY.token = URL.substring(46, 289);
             playlistSY.getUserId();
@@ -359,14 +473,16 @@ playlistSY = {
                 after = len;
             } else {
                 len = playlistSY.songs.length;
-            } 
+                after = false;
+            }
         }
         
         uriArray = [];
         
         for (i; i < len; i++) {
-            if(document.getElementById('spotifyCheck' + i).classList.contains('checked')) {
+            if (document.getElementById('spotifyCheck' + i).classList.contains('checked')) {
                 uriArray.push(playlistSY.songs[i].uri);
+                alertSongs.addSavedSpotifySongs(playlistSY.songs[i].title);
             }
         }
         
@@ -380,13 +496,18 @@ playlistSY = {
         xhr.setRequestHeader('content-type', 'application/json');
         // Listen for response
         xhr.onreadystatechange = function () {
-            if (this.readyState === 4 && this.status === 200) {
-                playlistSY.saveTracks(after);
+            if (this.readyState === 4 && this.status === 201) {
+                if (after) {
+                    playlistSY.saveTracks(after);
+                } else {
+                    alertSongs.spotifyFinishedTrue();
+                    alertSongs.alertSavedSongs();
+                }
             }
         };
         xhr.send(JSON.stringify(params));
         
-    },
+    }
 };
 
 
@@ -529,8 +650,8 @@ playlistYT = {
         i = 0;
         len = playlistYT.songs.length;
         
-        for(i; i < len; i++) {
-            if(document.getElementById('youtubeCheck' + i).classList.contains('checked')) {
+        for (i; i < len; i++) {
+            if (document.getElementById('youtubeCheck' + i).classList.contains('checked')) {
                 xhr = new XMLHttpRequest();
                 rId = playlistYT.songs[i].rId;
                 URL = playlistYT.songs[i].URL;
@@ -551,6 +672,15 @@ playlistYT = {
 
                 // Listen for response
                 xhr.onreadystatechange = function () {
+                    if (this.readyState === 4 && this.status === 200) {
+                        alertSongs.addSavedYoutubeSongs(JSON.parse(xhr.response).snippet.title.toString());
+
+                        if (i + 1 >= len) {
+                            alertSongs.youtubeFinishedTrue();
+                            alertSongs.alertSavedSongs();
+                        }
+                    }
+
                     if (this.status === 404) {
                         target = document.getElementById('youtubeTrack' + i).childNodes[1];
                         target.innerHTML += ' - Video Not Found';
@@ -559,8 +689,8 @@ playlistYT = {
                 };
                 xhr.send(JSON.stringify(params));
             }
-        }      
-    },
+        }
+    }
 };
 
 // redditSaved contains all variables and functions used to import youtube links from a reddit user's saved list
@@ -662,7 +792,7 @@ redditSaved = {
         xhr = new XMLHttpRequest();
         params = '?limit=100';
         
-        if(after) {
+        if (after) {
             params = params + '&after=' + after;
         }
         
@@ -678,7 +808,7 @@ redditSaved = {
                 for (i = 0; i < count; i++) {
                     if (spotify && response.data.children[i].data.domain === 'open.spotify.com') {
                         
-                        if(!!response.data.children[i].data.media) {
+                        if (!!response.data.children[i].data.media) {
                             playlistSY.parseSYId(response.data.children[i].data.url, response.data.children[i].data.name, response.data.children[i].data.media.oembed.description);
                         } else {
                             playlistSY.parseSYId(response.data.children[i].data.url, response.data.children[i].data.name, response.data.children[i].data.title);
@@ -687,7 +817,7 @@ redditSaved = {
                     
                     if (youtube && (response.data.children[i].data.domain === 'youtube.com' || response.data.children[i].data.domain === 'youtu.be')) {
                         
-                        if(!!response.data.children[i].data.media) {
+                        if (!!response.data.children[i].data.media) {
                             playlistYT.parseYTId(response.data.children[i].data.url, response.data.children[i].data.name, response.data.children[i].data.media.oembed.title);
                         } else {
                             playlistYT.parseYTId(response.data.children[i].data.url, response.data.children[i].data.name, response.data.children[i].data.title);
@@ -699,7 +829,7 @@ redditSaved = {
                     }
                     */
                 }
-                after?redditSaved.retrieveSaved(username, after):tableBuilder();
+                after ? redditSaved.retrieveSaved(username, after) : tableBuilder();
             }
             
         };
@@ -720,7 +850,7 @@ redditSaved = {
         // Listen for response
         xhr.onreadystatechange = function () {
             if (this.readyState === 4 && this.status === 200) {
-                
+                //TODO: Confirmation of unsave
             }
         };
         xhr.send(params);
@@ -735,15 +865,15 @@ redditSaved = {
         checked = document.getElementsByClassName('checked');
         i = checked.length - 1;
         
-        for(i; i >= 0; i--) {
-            if(checked[i].classList.contains('Spotify')) {
+        for (i; i >= 0; i--) {
+            if (checked[i].classList.contains('Spotify')) {
                 num = parseInt(checked[i].id.substring(12), 10);
                 redditSaved.unsave(playlistSY.songs[num].rId);
                 //Must be placed in both to avoid affecting higher level checkboxes, e.g. Check All
                 checked[i].parentNode.parentNode.parentNode.removeChild(checked[i].parentNode.parentNode);
             }
             
-            if(checked[i].classList.contains('YouTube')) {
+            if (checked[i].classList.contains('YouTube')) {
                 num = parseInt(checked[i].id.substring(12), 10);
                 redditSaved.unsave(playlistYT.songs[num].rId);
                 //Must be placed in both to avoid affecting higher level checkboxes, e.g. Check All
@@ -755,7 +885,7 @@ redditSaved = {
 
 function confirmUnsaved() {
     'use strict';
-    if(window.confirm('Remove these songs from PlaylistRx and your Reddit Saved list?')) {
+    if (window.confirm('Remove these songs from PlaylistRx and your Reddit Saved list?')) {
         redditSaved.unsaveSelected();
     }
 }
@@ -770,26 +900,26 @@ function tableBuilder() {
     
     if (playlistSY.songs.length !== 0 || playlistSY.albums.length !== 0) {
         playlistSY.authTokenGet();
-    }             
+    }
 
     /*
     if (playlistSC.songs.length !== 0) {
         playlistSC.authTokenGet();
     }
     */
-};
+}
 
-function savePlaylists () {
+function savePlaylists() {
     'use strict';
     
-    if(serviceHasCheck('Spotify')) {
+    if (serviceHasCheck('Spotify')) {
         playlistSY.playlistInstantiator();
     }
     
-    if(serviceHasCheck('YouTube')) {
+    if (serviceHasCheck('YouTube')) {
         playlistYT.playlistInstantiator();
     }
-};
+}
 
 function clearPlaylistRx() {
     'use strict';
@@ -802,31 +932,34 @@ function clearPlaylistRx() {
     checked = document.getElementsByClassName('checked');
     i = checked.length - 1;
 
-    for(i; i >= 0; i--) {
-        if(checked[i].classList.contains('Spotify') || checked[i].classList.contains('YouTube')) {
+    for (i; i >= 0; i--) {
+        if (checked[i].classList.contains('Spotify') || checked[i].classList.contains('YouTube')) {
             checked[i].parentNode.parentNode.parentNode.removeChild(checked[i].parentNode.parentNode);
         }
 
     }
-};
+}
 
-function getRedditSaved () {
+function getRedditSaved() {
     'use strict';
     clearPlaylistRx();
     redditSaved.authTokenGet();
-};
+}
 
 
 document.getElementById('playlistRx').addEventListener('click', getRedditSaved);
 document.getElementById('saveSelected').addEventListener('click', savePlaylists);
 document.getElementById('unsaveSelected').addEventListener('click', confirmUnsaved);
 
-document.getElementById('checkAll').addEventListener('change', function(event) {
+document.getElementById('checkAll').addEventListener('change', function (event) {
+    'use strict';
     checkAll(event);
 });
-document.getElementById('spotifyCheckAll').addEventListener('change', function(event) {
+document.getElementById('spotifyCheckAll').addEventListener('change', function (event) {
+    'use strict';
     checkAll(event, 'SY');
 });
-document.getElementById('youtubeCheckAll').addEventListener('change', function(event) {
+document.getElementById('youtubeCheckAll').addEventListener('change', function (event) {
+    'use strict';
     checkAll(event, 'YT');
 });
