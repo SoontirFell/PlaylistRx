@@ -42,156 +42,49 @@ function generatePlaylistName() {
     return name;
 }
 
-function toggleCheckedClass(event, id) {
+ajax = (function () {
     'use strict';
-    var classes;
     
-    classes = event ? event.target.classList : id.classList;
-    
-    classes.contains('checked') ? classes.remove('checked') : classes.add('checked');
-}
+    return {
 
-function createRow(service, title, url, count) {
-    'use strict';
-    var checkbox,
-        checkboxId,
-        link,
-        serviceClass,
-        spotifyPlacer,
-        td,
-        tr,
-        trId,
-        youtubePlacer;
-    
-    spotifyPlacer = document.getElementById('youtubeSubheader').previousElementSibling;
-    youtubePlacer = document.getElementById('playlistCreator').lastChild;
-    
-    tr = document.createElement('tr');
-    
-    switch (service) {
-    case 'SY':
-        trId = 'spotifyTrack' + count;
-        checkboxId = 'spotifyCheck' + count;
-        serviceClass = 'Spotify';
-        spotifyPlacer.after(tr);
-        break;
-    case 'YT':
-        trId = 'youtubeTrack' + count;
-        checkboxId = 'youtubeCheck' + count;
-        serviceClass = 'YouTube';
-        youtubePlacer.after(tr);
-        break;
-    default:
-        return;
-    }
-    
-    tr.setAttribute('id', trId);
-    
-    checkbox = document.createElement('input');
-    checkbox.setAttribute('id', checkboxId);
-    checkbox.setAttribute('name', checkboxId);
-    checkbox.setAttribute('type', 'checkbox');
-    checkbox.classList.add(serviceClass, 'checked');
-    checkbox.checked = true;
-    checkbox.addEventListener('change', toggleCheckedClass);
-    
-    td = document.createElement('td');
-    td.appendChild(checkbox);
-    tr.appendChild(td);
-    
-    link = document.createElement('a');
-    link.innerHTML = title;
-    link.setAttribute('href', url);
-    
-    td = document.createElement('td');
-    td.appendChild(link);
-    td.setAttribute('colspan', '3');
-    tr.appendChild(td);
-}
-
-function checkAll(event, service) {
-    'use strict';
-    var i,
-        len,
-        status,
-        targets;
-    
-    i = 0;
-    status = event.target.checked;
-    
-    switch (service) {
-    case 'SY':
-        targets = document.getElementsByClassName('Spotify');
-        break;
-    case 'YT':
-        targets = document.getElementsByClassName('YouTube');
-        break;
-    default:
-        targets = document.getElementsByTagName('input');
-    }
-    
-    len = targets.length;
-    
-    for (i; i < len; i++) {
-        if (targets[i].checked !== status) {
-            targets[i].checked = status;
-            toggleCheckedClass(null, targets[i]);
-        }
-    }
-}
-
-function serviceHasCheck(service) {
-    'use strict';
-    var i,
-        len,
-        nodes;
-    
-    i = 0;
-    nodes = document.getElementsByClassName(service);
-    len = nodes.length;
-    
-    for (i; i < len; i++) {
-        if (nodes[i].checked === true) {
-            return true;
-        }
-    }
-}
-
+    };
+})();
 
 alertSongs = (function () {
-    var prAddSavedSpotifySongs,
-        prAddSavedYoutubeSongs,
-        prAlertSavedSongs,
-        prSavedSpotifySongs,
-        prSavedYoutubeSongs,
-        prSpotifyFinished,
-        prYoutubeFinished;
+    'use strict';
+    var _AddSavedSpotifySongs,
+        _AddSavedYoutubeSongs,
+        _AlertSavedSongs,
+        _ConfirmUnsaved,
+        _SavedSpotifySongs,
+        _SavedYoutubeSongs,
+        _SpotifyFinished,
+        _SpotifyFinishedTrue,
+        _YoutubeFinished,
+        _YoutubeFinishedTrue;
 
-    prSavedSpotifySongs =  [];
-    prSavedYoutubeSongs = [];
-    prSpotifyFinished = false;
-    prYoutubeFinished = false;
+    _SavedSpotifySongs =  [];
+    _SavedYoutubeSongs = [];
+    _SpotifyFinished = false;
+    _YoutubeFinished = false;
 
-    prAddSavedSpotifySongs = function (song) {
-        'use strict';
+    _AddSavedSpotifySongs = function (song) {
         if (typeof song === 'string'){
-            prSavedSpotifySongs.push(song);
+            _SavedSpotifySongs.push(song);
         } else {
             console.log(song + 'is not a string.');
         }
     };
 
-    prAddSavedYoutubeSongs = function (song) {
-        'use strict';
+    _AddSavedYoutubeSongs = function (song) {
         if (typeof song === 'string'){
-            prSavedYoutubeSongs.push(song);
+            _SavedYoutubeSongs.push(song);
         } else {
             console.log(song + ' is not a string.');
         }
     };
     
-    prAlertSavedSongs = function () {
-        'use strict';
+    _AlertSavedSongs = function () {
         var countSy,
             countYt,
             i,
@@ -200,17 +93,17 @@ alertSongs = (function () {
             youtubeReady;
         
         msg = '';
-        countSy = prSavedSpotifySongs.length;
-        countYt = prSavedYoutubeSongs.length;
+        countSy = _SavedSpotifySongs.length;
+        countYt = _SavedYoutubeSongs.length;
         
-        spotifyReady = (prSpotifyFinished && countSy >= 0);
-        youtubeReady = (prYoutubeFinished && countYt >= 0);
+        spotifyReady = (_SpotifyFinished && countSy >= 0);
+        youtubeReady = (_YoutubeFinished && countYt >= 0);
 
         if (spotifyReady) {
             msg += 'The following songs were saved to Spotify:\n';
 
             for (i = 0; i < countSy; i++) {
-                msg += prSavedSpotifySongs[i];
+                msg += _SavedSpotifySongs[i];
                 if (i + 1 <= countSy) {
                     msg += '\n';
                 }
@@ -225,47 +118,48 @@ alertSongs = (function () {
             msg += 'The following songs were saved to YouTube:\n';
             
             for (i = 0; i < countYt; i++) {
-                msg += prSavedYoutubeSongs[i];
+                msg += _SavedYoutubeSongs[i];
                 if (i + 1 <= countYt) {
                     msg += '\n';
                 }
             }
         }
 
-        if ((prSpotifyFinished || !serviceHasCheck('Spotify')) && (prYoutubeFinished || !serviceHasCheck('YouTube'))) {
+        if ((_SpotifyFinished || !utilities.serviceHasCheck('Spotify')) && (_YoutubeFinished || !utilities.serviceHasCheck('YouTube'))) {
             window.alert(msg);
-            prSavedSpotifySongs = [];
-            prSavedYoutubeSongs = [];
-            prSpotifyFinished = false;
-            prYoutubeFinished = false;
+            _SavedSpotifySongs = [];
+            _SavedYoutubeSongs = [];
+            _SpotifyFinished = false;
+            _YoutubeFinished = false;
         }
     };
 
-    return {
-        alertSavedSongs: function () {
-            'use strict';
-            prAlertSavedSongs();
-        },
-
-        addSavedSpotifySongs: function (song) {
-            'use strict';
-            prAddSavedSpotifySongs(song);
-        },
-
-        addSavedYoutubeSongs: function (song) {
-            'use strict';
-            prAddSavedYoutubeSongs(song);
-        },
-        
-        spotifyFinishedTrue: function () {
-            'use strict';
-            prSpotifyFinished = true;
-        },
-
-        youtubeFinishedTrue: function () {
-            'use strict';
-            prYoutubeFinished = true;
+    _ConfirmUnsaved = function () {
+        if (window.confirm('Remove these songs from PlaylistRx and your Reddit Saved list?')) {
+            redditSaved.unsaveSelected();
         }
+    };
+
+    _SpotifyFinishedTrue = function () {
+        _SpotifyFinished = true;
+    };
+
+    _YoutubeFinishedTrue = function () {
+        _YoutubeFinished = true;
+    };
+
+    return {
+        alertSavedSongs: _AlertSavedSongs,
+
+        addSavedSpotifySongs: _AddSavedSpotifySongs,
+
+        addSavedYoutubeSongs: _AddSavedYoutubeSongs,
+
+        confirmUnsaved: _ConfirmUnsaved,
+        
+        spotifyFinishedTrue: _SpotifyFinishedTrue,
+
+        youtubeFinishedTrue: _YoutubeFinishedTrue
     };
 })();
 
@@ -343,7 +237,7 @@ playlistSY = {
         len = playlistSY.songs.length;
         
         for (i; i < len; i++) {
-            createRow('SY', playlistSY.songs[i].title, playlistSY.songs[i].URL, i);
+            utilities.createRow('SY', playlistSY.songs[i].title, playlistSY.songs[i].URL, i);
         }
     },
     
@@ -588,7 +482,7 @@ playlistYT = {
         len = playlistYT.songs.length;
         
         for (i; i < len; i++) {
-            createRow('YT', playlistYT.songs[i].title, playlistYT.songs[i].URL, i);
+            utilities.createRow('YT', playlistYT.songs[i].title, playlistYT.songs[i].URL, i);
         }
     },
     
@@ -638,9 +532,11 @@ playlistYT = {
     
     saveTracks: function () {
         'use strict';
-        var i,
-            len,
+        var checkedCount,
+            checkedSavedCount,
+            i,
             params,
+            playlistLen,
             rId,
             target,
             URL,
@@ -648,9 +544,13 @@ playlistYT = {
             xhr;
         
         i = 0;
-        len = playlistYT.songs.length;
+        playlistLen = playlistYT.songs.length;
+        checkedCount = document.getElementsByClassName('YouTube checked').length;
+        checkedSavedCount = 0;
         
-        for (i; i < len; i++) {
+        if(checkedCount <= 0) return;
+        
+        for (i; i < playlistLen; i++) {
             if (document.getElementById('youtubeCheck' + i).classList.contains('checked')) {
                 xhr = new XMLHttpRequest();
                 rId = playlistYT.songs[i].rId;
@@ -674,8 +574,9 @@ playlistYT = {
                 xhr.onreadystatechange = function () {
                     if (this.readyState === 4 && this.status === 200) {
                         alertSongs.addSavedYoutubeSongs(JSON.parse(xhr.response).snippet.title.toString());
+                        checkedSavedCount++;
 
-                        if (i + 1 >= len) {
+                        if (checkedSavedCount >= checkedCount) {
                             alertSongs.youtubeFinishedTrue();
                             alertSongs.alertSavedSongs();
                         }
@@ -758,6 +659,12 @@ redditSaved = {
         }
     },
     // End OAuth
+
+    getRedditSaved: function () {
+        'use strict';
+        utilities.clearPlaylistRx();
+        redditSaved.authTokenGet();
+    },
     
     retrieveUsername: function (n) {
         'use strict';
@@ -829,7 +736,7 @@ redditSaved = {
                     }
                     */
                 }
-                after ? redditSaved.retrieveSaved(username, after) : tableBuilder();
+                after ? redditSaved.retrieveSaved(username, after) : utilities.tableBuilder();
             }
             
         };
@@ -883,83 +790,218 @@ redditSaved = {
     }
 };
 
-function confirmUnsaved() {
+
+utilities = (function () {
     'use strict';
-    if (window.confirm('Remove these songs from PlaylistRx and your Reddit Saved list?')) {
-        redditSaved.unsaveSelected();
-    }
-}
-
-function tableBuilder() {
-    'use strict';
+    var _CheckUncheckAll,
+        _ClearPlaylistRx,
+        _CreateRow,
+        _QueryStringParams,
+        _SavePlaylists,
+        _ServiceHasCheck,
+        _TableBuilder,
+        _ToggleCheckedClass;
     
-    if (playlistYT.songs.length !== 0) {
-        playlistYT.authTokenGet();
-    }
-    
-    
-    if (playlistSY.songs.length !== 0 || playlistSY.albums.length !== 0) {
-        playlistSY.authTokenGet();
-    }
-
-    /*
-    if (playlistSC.songs.length !== 0) {
-        playlistSC.authTokenGet();
-    }
-    */
-}
-
-function savePlaylists() {
-    'use strict';
-    
-    if (serviceHasCheck('Spotify')) {
-        playlistSY.playlistInstantiator();
-    }
-    
-    if (serviceHasCheck('YouTube')) {
-        playlistYT.playlistInstantiator();
-    }
-}
-
-function clearPlaylistRx() {
-    'use strict';
-    var checked,
-        i;
-    
-    playlistSY.songs = [];
-    playlistYT.songs = [];
-
-    checked = document.getElementsByClassName('checked');
-    i = checked.length - 1;
-
-    for (i; i >= 0; i--) {
-        if (checked[i].classList.contains('Spotify') || checked[i].classList.contains('YouTube')) {
-            checked[i].parentNode.parentNode.parentNode.removeChild(checked[i].parentNode.parentNode);
+    _CheckUncheckAll = function (event, service) {
+        var i,
+            len,
+            status,
+            targets;
+        
+        i = 0;
+        status = event.target.checked;
+        
+        switch (service) {
+        case 'SY':
+            targets = document.getElementsByClassName('Spotify');
+            break;
+        case 'YT':
+            targets = document.getElementsByClassName('YouTube');
+            break;
+        default:
+            targets = document.getElementsByTagName('input');
         }
+        
+        len = targets.length;
+        
+        for (i; i < len; i++) {
+            if (targets[i].checked !== status) {
+                targets[i].checked = status;
+                _ToggleCheckedClass(null, targets[i]);
+            }
+        }
+    };
 
-    }
-}
+    _ClearPlaylistRx = function () {
+        var checked,
+            i;
+        
+        playlistSY.songs = [];
+        playlistYT.songs = [];
+    
+        checked = document.getElementsByClassName('checked');
+        i = checked.length - 1;
+    
+        for (i; i >= 0; i--) {
+            if (checked[i].classList.contains('Spotify') || checked[i].classList.contains('YouTube')) {
+                checked[i].parentNode.parentNode.parentNode.removeChild(checked[i].parentNode.parentNode);
+            }
+    
+        }
+    };
 
-function getRedditSaved() {
-    'use strict';
-    clearPlaylistRx();
-    redditSaved.authTokenGet();
-}
+    _CreateRow = function (service, title, url, count) {
+        var checkbox,
+            checkboxId,
+            link,
+            serviceClass,
+            spotifyPlacer,
+            td,
+            tr,
+            trId,
+            youtubePlacer;
+        
+        spotifyPlacer = document.getElementById('youtubeSubheader').previousElementSibling;
+        youtubePlacer = document.getElementById('playlistCreator').lastChild;
+        
+        tr = document.createElement('tr');
+        
+        switch (service) {
+        case 'SY':
+            trId = 'spotifyTrack' + count;
+            checkboxId = 'spotifyCheck' + count;
+            serviceClass = 'Spotify';
+            spotifyPlacer.after(tr);
+            break;
+        case 'YT':
+            trId = 'youtubeTrack' + count;
+            checkboxId = 'youtubeCheck' + count;
+            serviceClass = 'YouTube';
+            youtubePlacer.after(tr);
+            break;
+        default:
+            return;
+        }
+        
+        tr.setAttribute('id', trId);
+        
+        checkbox = document.createElement('input');
+        checkbox.setAttribute('id', checkboxId);
+        checkbox.setAttribute('name', checkboxId);
+        checkbox.setAttribute('type', 'checkbox');
+        checkbox.classList.add(serviceClass, 'checked');
+        checkbox.checked = true;
+        checkbox.addEventListener('change', _ToggleCheckedClass);
+        
+        td = document.createElement('td');
+        td.appendChild(checkbox);
+        tr.appendChild(td);
+        
+        link = document.createElement('a');
+        link.innerHTML = title;
+        link.setAttribute('href', url);
+        
+        td = document.createElement('td');
+        td.appendChild(link);
+        td.setAttribute('colspan', '3');
+        tr.appendChild(td);
+    };
 
+     _QueryStringParams = function (queryString) {
+        var qsArray     = (queryString && queryString.length > 0) ?         queryString.split('&') : [],
+            qsArrayLen  = qsArray.length,
+            qsObject    = {},
+            qsIndex     = 0,
+            qsNVArray   = [];
 
-document.getElementById('playlistRx').addEventListener('click', getRedditSaved);
-document.getElementById('saveSelected').addEventListener('click', savePlaylists);
-document.getElementById('unsaveSelected').addEventListener('click', confirmUnsaved);
+        queryString = queryString.split('?')[1];
+        // loop over valid array to build name/value pairs
+        if (qsArrayLen > 0) {
+            for (qsIndex = 0; qsIndex < qsArrayLen; qsIndex ++) {
+                // assumes "name=value" form
+                qsNVArray = qsArray[qsIndex].split('=');
+                if (qsNVArray.length > 0) {
+                    qsObject[decodeURIComponent(qsNVArray[0])] = decodeURIComponent(qsNVArray[1]);
+                }
+            }
+        }
+        // return the name/value pair object
+        return qsObject;
+    };
+
+    _SavePlaylists = function () {
+        if (_ServiceHasCheck('Spotify')) {
+            playlistSY.playlistInstantiator();
+        }
+        
+        if (_ServiceHasCheck('YouTube')) {
+            playlistYT.playlistInstantiator();
+        }
+    };
+
+    _ServiceHasCheck = function (service) {
+        var i,
+            len,
+            nodes;
+        
+        i = 0;
+        nodes = document.getElementsByClassName(service);
+        len = nodes.length;
+        
+        for (i; i < len; i++) {
+            if (nodes[i].checked === true) {
+                return true;
+            }
+        }
+    };
+
+    _TableBuilder = function () {
+        if (playlistYT.songs.length !== 0) {
+            playlistYT.authTokenGet();
+        }
+        
+        
+        if (playlistSY.songs.length !== 0 || playlistSY.albums.length !== 0) {
+            playlistSY.authTokenGet();
+        }
+    };
+
+    _ToggleCheckedClass = function (event, id) {
+        var classes;
+        
+        classes = event ? event.target.classList : id.classList;
+        
+        classes.contains('checked') ? classes.remove('checked') : classes.add('checked');
+    };
+
+    return {
+        checkUncheckAll: _CheckUncheckAll,
+
+        clearPlaylistRx: _ClearPlaylistRx,
+        
+        createRow: _CreateRow,
+
+        savePlaylists: _SavePlaylists,
+
+        serviceHasCheck: _ServiceHasCheck,
+
+        tableBuilder: _TableBuilder,
+    };
+})();
+
+document.getElementById('playlistRx').addEventListener('click', redditSaved.getRedditSaved);
+document.getElementById('saveSelected').addEventListener('click', utilities.savePlaylists);
+document.getElementById('unsaveSelected').addEventListener('click', alertSongs.confirmUnsaved);
 
 document.getElementById('checkAll').addEventListener('change', function (event) {
     'use strict';
-    checkAll(event);
+    utilities.checkUncheckAll(event);
 });
 document.getElementById('spotifyCheckAll').addEventListener('change', function (event) {
     'use strict';
-    checkAll(event, 'SY');
+    utilities.checkUncheckAll(event, 'SY');
 });
 document.getElementById('youtubeCheckAll').addEventListener('change', function (event) {
     'use strict';
-    checkAll(event, 'YT');
+    utilities.checkUncheckAll(event, 'YT');
 });
