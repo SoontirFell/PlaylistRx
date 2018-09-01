@@ -15,6 +15,7 @@
     "@babel/preset-react": "^7.0.0",
     "babel-core": "^6.26.3",
     "babel-jest": "^23.4.2",
+    "flyd": "^0.2.8",
     "jest": "^23.5.0",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
@@ -26,5 +27,6 @@
     "rollup-plugin-replace": "^2.0.0",
     "rollup-plugin-uglify": "^5.0.2",
     "uglify-js": "^3.4.9"
-  }
+  },
+  "dependencies": {}
 }

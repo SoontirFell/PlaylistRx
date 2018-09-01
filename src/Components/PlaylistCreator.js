@@ -1,14 +1,12 @@
 import React from 'react';
 import Toolbar from './Toolbar.js';
-import Tabs from './Tabs.js';
+import TabView from './TabView.js';
 
-export default class Playlist extends React.Component {
-    render() {
-        return (
+export default (props) => {
+    return (
             <div>
                 <Toolbar />
-                <Tabs />
+                <TabView />
             </div>
         )
-    }
 }

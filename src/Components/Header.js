@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Header() {
+export default () => {
     return (
         <div>
             <h1 id="headline" class="headline">Playlist<span id="headlineRx">Rx</span></h1>
