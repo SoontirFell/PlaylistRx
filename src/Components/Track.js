@@ -2,8 +2,9 @@ import React from 'react';
 
 export default function Track(props) {
     return (
-        <div>
-            
+        <div id={props.id} className="playlistTrack">
+            <input type="checkbox" checked id={`${props.id}Checkbox`} name={`${props.id}Checkbox`} className={props.service} />
+            <a href={props.url} >{props.title}</a>
         </div>
     )
 }
