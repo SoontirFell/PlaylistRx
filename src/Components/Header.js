@@ -1,10 +1,9 @@
 import React from 'react';
 
-export default class Header extends React.Component {
-    render() {
-        return (
-            <div>
-            </div>
-        )
-    }
+export default function Header() {
+    return (
+        <div>
+            <h1 id="headline" class="headline">Playlist<span id="headlineRx">Rx</span></h1>
+        </div>
+    )
 }
