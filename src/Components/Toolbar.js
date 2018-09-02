@@ -5,20 +5,20 @@ export default (props) => {
         <div>
             <div>
                 <h3>Create Playlists For: </h3>
-                <input id="checkSpotify" name="checkSpotify" type="checkbox" checked={false}/>
-                <input id="checkYouTube" name="checkYouTube" type="checkbox" checked={true}/>
+                <input id="spotifyCheck" name="spotifyCheck" type="checkbox" checked={false}/>
+                <input id="youTubeCheck" name="youTubeCheck" type="checkbox" checked={true}/>
             </div>
             <div>
-                <div id="playlistRx" class="button" name="playlistRx" >
+                <div id="redditScanButton" class="button" >
                     Scan Reddit Saved
                     </div>
-                <div id="playlistRx" class="button" name="playlistRx" >
+                <div id="redditUnsaveButton" class="button" >
                     Remove from Reddit Saved
                 </div>
             </div>
             <div>
-                <input id='playlistsGivenName' type='text' placeholder='Name your playlist(s)' />
-                <div id="playlistRx" class="button" name="playlistRx" >
+                <input id='playlistGivenName' name='playlistGivenName' type='text' placeholder='Name your playlist(s)' />
+                <div id="playlistRx" class="button" >
                     Create Playlist(s)
                 </div>
             </div>
@@ -26,7 +26,7 @@ export default (props) => {
                 <div id='spotifyTabSelector' className='tabSelector'>
                     Spotify
                 </div>
-                <div id='YouTubeTabSelector' className='tabSelector'>
+                <div id='youTubeTabSelector' className='tabSelector'>
                     YouTube
                 </div>
             </div>
