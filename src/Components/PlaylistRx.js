@@ -1,5 +1,4 @@
 import React from 'react';
-import Header from './Header.js';
 import Toolbar from './Toolbar.js';
 import TabView from './TabView.js';
 import controllerMethods from '../controllerMethods.js'
