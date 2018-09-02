@@ -5,8 +5,8 @@ export default (props) => {
         <div>
             <div>
                 <h3>Create Playlists For: </h3>
-                <input id="checkSpotify" name="checkSpotify" type="checkbox" checked />>
-                <input id="checkYouTube" name="checkYouTube" type="checkbox" checked />
+                <input id="checkSpotify" name="checkSpotify" type="checkbox" checked={false}/>
+                <input id="checkYouTube" name="checkYouTube" type="checkbox" checked={true}/>
             </div>
             <div>
                 <div id="playlistRx" class="button" name="playlistRx" >

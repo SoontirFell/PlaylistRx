@@ -10,13 +10,19 @@ export default {
         file: "./dist/dev.js",
         format: "cjs"
     },
+    // watch: {
+    //     chokidar,
+    //     include,
+    //     exclude,
+    //     clearScreen
+    // },
     plugins: [
         babel({
             exclude: "node_modules/**"
         }),
         replace({
-            'process.env.NODE_ENV': JSON.stringify( 'production' )
-          }),
+            'process.env.NODE_ENV': JSON.stringify('production')
+        }),
         commonjs(),
         resolve(),
         uglify()
