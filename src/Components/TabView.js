@@ -4,7 +4,7 @@ import YouTubeTracks from './YouTubeTracks.js';
 
 export default (props) => {
     return (
-        <div>
+        <div className='playlistWindow'>
             <SpotifyTracks />
             <YouTubeTracks />
         </div>

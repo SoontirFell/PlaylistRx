@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from './Header.js';
-import PlaylistCreator from './PlaylistCreator.js';
+import Toolbar from './Toolbar.js';
+import TabView from './TabView.js';
 import controllerMethods from '../controllerMethods.js'
 
 export default class PlaylistRx extends React.Component {
@@ -9,13 +10,16 @@ export default class PlaylistRx extends React.Component {
         this.state = {
             controllerMethods: controllerMethods
         };
-      }
+    }
 
     render() {
         return (
             <div>
-                <Header />
-                <PlaylistCreator />
+                <div>
+                    <h1 className="headline">Playlist<span className="headlineRx">Rx</span></h1>
+                </div>
+                <Toolbar />
+                <TabView />
             </div>
         )
     }
