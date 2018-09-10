@@ -10,12 +10,6 @@ export default {
         file: "./dist/dev.js",
         format: "cjs"
     },
-    // watch: {
-    //     chokidar,
-    //     include,
-    //     exclude,
-    //     clearScreen
-    // },
     plugins: [
         babel({
             exclude: "node_modules/**"
@@ -24,7 +18,8 @@ export default {
             'process.env.NODE_ENV': JSON.stringify('production')
         }),
         commonjs(),
-        resolve(),
-        uglify()
+        resolve()
+        // ,
+        // uglify()
     ]
 }
