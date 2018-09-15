@@ -1,13 +1,16 @@
 import React from 'react';
 
+export default createToolbar;
+
 const createToolbar = (update) => {
     const toggleCheck = (event) => {
-        return update( (model) => {
+        return update((model) => {
             const map = {
                 spotifyCheck: 'isSpotifyChecked',
                 youTubeCheck: 'isYouTubeChecked'
             },
                 key = map[event.target.id];
+
             model[key] = !(model[key]);
             return model;
         })
@@ -24,10 +27,10 @@ const createToolbar = (update) => {
         return (
             <div>
                 <div>
-                    <h3>Create Playlists For: </h3>
+                    <p className="largeLabel">Create Playlists For: </p>
                     <label for-="spotifyCheck">
                         Spotify
-                        <input id="spotifyCheck" name="spotifyCheck" type="checkbox" checked={model.isSpotifyChecked} onClick={toggleCheck}/>
+                        <input id="spotifyCheck" name="spotifyCheck" type="checkbox" checked={model.isSpotifyChecked} onClick={toggleCheck} />
                     </label>
                     <label for-="youTubeCheck">
                         YouTube
@@ -35,17 +38,17 @@ const createToolbar = (update) => {
                     </label>
                 </div>
                 <div>
-                    <div id="redditScanButton" class="button" >
+                    <div id="redditScanButton" className="button" >
                         Scan Reddit Saved
-                    </div>
-                    <div id="redditUnsaveButton" class="button" >
-                        Remove from Reddit Saved
                     </div>
                 </div>
                 <div>
                     <input id='playlistGivenName' name='playlistGivenName' type='text' placeholder='Name your playlist(s)' />
-                    <div id="playlistRx" class="button" >
+                    <div id="playlistRx" className="button" >
                         Create Playlist(s)
+                    </div>
+                    <div id="redditUnsaveButton" className="button marginLeft" >
+                        Remove from Reddit Saved
                     </div>
                 </div>
             </div>
@@ -57,5 +60,3 @@ const createToolbar = (update) => {
         model
     }
 }
-
-export default createToolbar;

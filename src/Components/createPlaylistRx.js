@@ -1,28 +1,29 @@
 import React from 'react';
 import nest from '../utilities/nest.js';
 import createToolbar from './createToolbar.js';
-import PlaylistTabs from './PlaylistTabs.js';
+import createPlaylists from './createPlaylists.js';
+
+export default PlaylistRx;
 
 const PlaylistRx = (update) => {
-    const toolbar = nest(createToolbar, update, "Toolbar");
+    const Toolbar = nest(createToolbar, update, "Toolbar"),
+        Playlists = nest(createPlaylists, update, "Playlists");
 
     const model = () => {
-        return Object.assign({}, toolbar.model());
+        return Object.assign({}, Toolbar.model(), Playlists.model());
     };
 
     const view = (model) => {
-            return(
+        return (
             <div>
-            <div>
-                <h1 className="headlvine">Playlist<span className="headlineRx">Rx</span></h1>
-            </div>
-           {toolbar.view(model)}
-            {/*<PlaylistTabs /> */}
+                <div>
+                    <h1 className="headlvine shadowOutline">Playlist<span className="headlineRx">Rx</span></h1>
+                </div>
+                {Toolbar.view(model)}
+                {Playlists.view(model)}
             </div >
         )
     };
 
-return { model, view }
-}
-
-export default PlaylistRx;
+    return { model, view }
+};

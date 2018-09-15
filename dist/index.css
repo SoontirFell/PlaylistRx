@@ -1,0 +1,38 @@
+/* Tags */
+
+div, input[type='text'] {
+    margin: 4px 8px 4px 0;
+}
+
+
+/* Classes */
+
+.button {
+    background-image: radial-gradient(farthest-corner at 10px 10px, #00A7B3 0%, #00EEFF 65%, #ffffff 70%, #FF6600 75%, #B32A00 100%);
+    border: 1px solid #000000;
+    border-radius: 4px;
+    display: inline-block;
+    padding: 2px;
+}
+
+.largeLabel {
+    font-size: 116%;
+    margin-bottom: 4px;
+}
+
+.tabSelector {
+    display: inline-block;
+}
+
+
+/* IDs */
+
+#root {
+    background: linear-gradient( #00EEFF, #FF6600);
+    border: 4px solid black;
+    border-radius: 4px;
+    color: #FFFFFF;
+    padding: 10px;
+    text-shadow: 1px 1px 1px #000000,
+            -1px -1px 1px #000000;
+}

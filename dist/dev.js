@@ -1712,7 +1712,9 @@ var createToolbar = function createToolbar(update) {
   };
 
   var view = function view(model) {
-    return react.createElement("div", null, react.createElement("div", null, react.createElement("h3", null, "Create Playlists For: "), react.createElement("label", {
+    return react.createElement("div", null, react.createElement("div", null, react.createElement("p", {
+      className: "largeLabel"
+    }, "Create Playlists For: "), react.createElement("label", {
       "for-": "spotifyCheck"
     }, "Spotify", react.createElement("input", {
       id: "spotifyCheck",
@@ -1730,19 +1732,19 @@ var createToolbar = function createToolbar(update) {
       onClick: toggleCheck
     }))), react.createElement("div", null, react.createElement("div", {
       id: "redditScanButton",
-      class: "button"
-    }, "Scan Reddit Saved"), react.createElement("div", {
-      id: "redditUnsaveButton",
-      class: "button"
-    }, "Remove from Reddit Saved")), react.createElement("div", null, react.createElement("input", {
+      className: "button"
+    }, "Scan Reddit Saved")), react.createElement("div", null, react.createElement("input", {
       id: "playlistGivenName",
       name: "playlistGivenName",
       type: "text",
       placeholder: "Name your playlist(s)"
     }), react.createElement("div", {
       id: "playlistRx",
-      class: "button"
-    }, "Create Playlist(s)")));
+      className: "button"
+    }, "Create Playlist(s)"), react.createElement("div", {
+      id: "redditUnsaveButton",
+      className: "button marginLeft"
+    }, "Remove from Reddit Saved")));
   };
 
   return {
@@ -1751,19 +1753,79 @@ var createToolbar = function createToolbar(update) {
   };
 };
 
-var PlaylistRx = function PlaylistRx(update) {
-  var toolbar = nest(createToolbar, update, "Toolbar");
+var createTab = function createTab(update) {
+  var model = function model() {
+    return Object.assign({}, {});
+  };
+
+  var view = function view(model) {
+    return react.createElement("div", null, "test");
+  };
+
+  return {
+    view: view,
+    model: model
+  };
+};
+
+var createPlaylists = function createPlaylists(update) {
+  var SpotifyTab = nest(createTab, update, "SpotifyTab"),
+      YouTubeTab = nest(createTab, update, "YouTubeTab");
 
   var model = function model() {
-    return Object.assign({}, toolbar.model());
+    return Object.assign({}, {
+      spotify: SpotifyTab.model(),
+      youtube: YouTubeTab.model()
+    });
+  };
+
+  var view = function view(model) {
+    return react.createElement("div", {
+      className: "tabs"
+    }, react.createElement("div", null, react.createElement("div", {
+      id: "spotifyTabSelector",
+      className: "tabSelector"
+    }, "Spotify"), react.createElement("div", {
+      id: "youTubeTabSelector",
+      className: "tabSelector"
+    }, "YouTube")), SpotifyTab.view(model), YouTubeTab.view(model));
+  };
+
+  return {
+    view: view,
+    model: model
+  };
+}; // export default (props) => {
+//     return (
+//         <div className='tabs'>
+//             <div>
+//                 <div id='spotifyTabSelector' className='tabSelector'>
+//                     Spotify
+//                 </div>
+//                 <div id='youTubeTabSelector' className='tabSelector'>
+//                     YouTube
+//                 </div>
+//             </div>
+//             {/* <SpotifyTracks />
+//             <YouTubeTracks /> */}
+//         </div>
+//     )
+// }
+
+var PlaylistRx = function PlaylistRx(update) {
+  var Toolbar = nest(createToolbar, update, "Toolbar"),
+      Playlists = nest(createPlaylists, update, "Playlists");
+
+  var model = function model() {
+    return Object.assign({}, Toolbar.model(), Playlists.model());
   };
 
   var view = function view(model) {
     return react.createElement("div", null, react.createElement("div", null, react.createElement("h1", {
-      className: "headlvine"
+      className: "headlvine shadowOutline"
     }, "Playlist", react.createElement("span", {
       className: "headlineRx"
-    }, "Rx"))), toolbar.view(model));
+    }, "Rx"))), Toolbar.view(model), Playlists.view(model));
   };
 
   return {
